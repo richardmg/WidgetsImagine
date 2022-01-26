@@ -42,10 +42,16 @@ class MyProxyStyle : public QProxyStyle
     {
         switch (element) {
         case CE_PushButton: {
-            if (TNinePatch *npImage = m_ninePatchImages[":/images/button-background.9.png"]) {
-                npImage->draw(*painter, option->rect);
+            if (const QStyleOptionButton *btn = qstyleoption_cast<const QStyleOptionButton *>(option)) {
+                QString fileName(":/images/button-background");
+                if (btn->state & QStyle::State_Sunken)
+                    fileName += QLatin1String("-pressed");
+                fileName += ".9.png";
+                qDebug() << "Draw:" << fileName << *btn;
 
-                if (const QStyleOptionButton *btn = qstyleoption_cast<const QStyleOptionButton *>(option)) {
+                if (TNinePatch *npImage = m_ninePatchImages[fileName]) {
+                    npImage->draw(*painter, option->rect);
+
                     QStyleOptionButton subopt = *btn;
                     subopt.rect = subElementRect(SE_PushButtonContents, btn, widget);
                     proxy()->drawControl(CE_PushButtonLabel, &subopt, painter, widget);
