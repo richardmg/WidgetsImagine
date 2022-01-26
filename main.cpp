@@ -38,17 +38,21 @@ class MyProxyStyle : public QProxyStyle
         }
     }
 
+    QString resolveFileName(const QString &baseName, const QStyleOption *option) const
+    {
+        QString fileName = QString(":/images/%1").arg(baseName);
+        if (option->state & QStyle::State_Sunken)
+            fileName += QLatin1String("-pressed");
+        fileName += ".9.png";
+        return fileName;
+    }
+
     void drawControl(QStyle::ControlElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget = nullptr) const override
     {
         switch (element) {
-        case CE_PushButton: {
+        case CE_PushButton:
             if (const QStyleOptionButton *btn = qstyleoption_cast<const QStyleOptionButton *>(option)) {
-                QString fileName(":/images/button-background");
-                if (btn->state & QStyle::State_Sunken)
-                    fileName += QLatin1String("-pressed");
-                fileName += ".9.png";
-                qDebug() << "Draw:" << fileName << *btn;
-
+                QString fileName = resolveFileName("button-background", option);
                 if (TNinePatch *npImage = m_ninePatchImages[fileName]) {
                     npImage->draw(*painter, option->rect);
 
@@ -58,7 +62,6 @@ class MyProxyStyle : public QProxyStyle
                 }
                 return;
             }
-            break; }
         default:
             break;
         }
@@ -68,19 +71,17 @@ class MyProxyStyle : public QProxyStyle
 
     QSize sizeFromContents(QStyle::ContentsType type, const QStyleOption *option, const QSize &size, const QWidget *widget) const override
     {
-        QSize widgetSize;
-
         switch (type)  {
         case CT_PushButton: {
-            QPixmap pixmap(QStringLiteral(":/images/button-background.9.png"));
-            widgetSize = pixmap.size();
-            break;
+            QString fileName = resolveFileName("button-background", option);
+            if (TNinePatch *npImage = m_ninePatchImages[fileName])
+                return npImage->Image.size();
         }
         default:
-            widgetSize = QProxyStyle::sizeFromContents(type, option, size, widget);
             break;
         }
-        return widgetSize;
+
+        return QProxyStyle::sizeFromContents(type, option, size, widget);
     }
 
 private:
