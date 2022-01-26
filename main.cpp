@@ -81,7 +81,7 @@ class MyProxyStyle : public QProxyStyle
         switch (type)  {
         case CT_PushButton: {
             if (TNinePatch *npImage = resolve9pImage("button-background", option))
-                return npImage->Image.size();
+                return npImage->m_image.size();
         }
         default:
             break;
