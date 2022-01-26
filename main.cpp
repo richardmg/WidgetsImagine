@@ -8,16 +8,16 @@
 
 #include "NinePatchQt/ninepatch.h"
 
-class MyProxyStyle : public QProxyStyle
+class QImagineStyle : public QProxyStyle
 {
   public:
 
-    MyProxyStyle()
+    QImagineStyle()
     {
         loadAndCacheImages();
     }
 
-    ~MyProxyStyle() {
+    ~QImagineStyle() {
         qDeleteAll(m_ninePatchImages);
     }
 
@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 //    loadAndCacheImages();
-    a.setStyle(new MyProxyStyle);
+    a.setStyle(new QImagineStyle);
     MainWindow w;
     w.show();
     return a.exec();
