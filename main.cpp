@@ -15,16 +15,21 @@ class QImagineStyle : public QProxyStyle
     QImagineStyle(const QString &imagePath)
     {
         // TODO: remove duplicates, only cache images of correct size (@2x, @3x etc).
-        QDirIterator it(imagePath, { "*.9.png" }, QDir::Files);
+        QDirIterator it(imagePath, { "*.png" }, QDir::Files);
         while (it.hasNext()) {
             const QString fileName = it.next();
-            const QImage image(fileName);
-            try {
-                // does this leak if exception is thrown?
-                TNinePatch *npImage = new TNinePatch(image);
-                m_ninePatchImages.insert(fileName, npImage);
-            } catch (NinePatchException *exception) {
-                qDebug() << "load, exception:" << exception->what();
+
+            if (fileName.contains(QLatin1String(".9."))) {
+                try {
+                    // does this leak if exception is thrown?
+                    TNinePatch *npImage = new TNinePatch(QImage(fileName));
+                    m_ninePatchImages.insert(fileName, npImage);
+                } catch (NinePatchException *exception) {
+                    qDebug() << "load, exception:" << exception->what();
+                }
+            } else {
+                m_pixmaps.insert(fileName, QPixmap(fileName));
+                qDebug() << "TODO: Load normal image:" << fileName;
             }
         }
     }
@@ -38,17 +43,40 @@ class QImagineStyle : public QProxyStyle
         QString fileName = QString(":/images/%1").arg(baseName);
         if (option->state & QStyle::State_Sunken)
             fileName += QLatin1String("-pressed");
-        fileName += ".9.png";
         return fileName;
     }
 
     TNinePatch *resolve9pImage(const QString &baseName, const QStyleOption *option) const
     {
-        QString fileName = resolveFileName(baseName, option);
+        QString fileName = resolveFileName(baseName, option) + QStringLiteral(".9.png");
         if (TNinePatch *npImage = m_ninePatchImages[fileName])
             return npImage;
         qWarning() << "Could not resolve image:" << fileName;
         return nullptr;
+    }
+
+    QPixmap resolvePixmap(const QString &baseName, const QStyleOption *option) const
+    {
+        QString fileName = resolveFileName(baseName, option) + QStringLiteral(".png");
+        if (m_pixmaps.contains(fileName))
+            return m_pixmaps[fileName];
+        return QPixmap();
+    }
+
+    bool drawImage(const QString &baseName, const QStyleOption *option, QPainter *painter) const
+    {
+        if (TNinePatch *npImage = resolve9pImage(baseName, option)) {
+            npImage->draw(*painter, option->rect);
+            return true;
+        }
+        QPixmap pixmap = resolvePixmap(baseName, option);
+        if (!pixmap.isNull()) {
+            painter->drawPixmap(option->rect.topLeft(), pixmap);
+            return true;
+        }
+
+        qWarning() << "Could not resolve image:" << resolveFileName(baseName, option);
+        return false;
     }
 
     void drawControl(QStyle::ControlElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget = nullptr) const override
@@ -56,9 +84,7 @@ class QImagineStyle : public QProxyStyle
         switch (element) {
         case CE_PushButton:
             if (const QStyleOptionButton *btn = qstyleoption_cast<const QStyleOptionButton *>(option)) {
-                if (TNinePatch *npImage = resolve9pImage("button-background", option)) {
-                    npImage->draw(*painter, option->rect);
-
+                if (drawImage(QStringLiteral("button-background"), option, painter)) {
                     QStyleOptionButton subopt = *btn;
                     subopt.rect = subElementRect(SE_PushButtonContents, btn, widget);
                     proxy()->drawControl(CE_PushButtonLabel, &subopt, painter, widget);
@@ -67,9 +93,7 @@ class QImagineStyle : public QProxyStyle
             }
         case CE_CheckBox: {
             if (const QStyleOptionButton *btn = qstyleoption_cast<const QStyleOptionButton *>(option)) {
-                if (TNinePatch *npImage = resolve9pImage("checkbox-indicator", option)) {
-                    npImage->draw(*painter, option->rect);
-
+                if (drawImage(QStringLiteral("checkbox-indicator"), option, painter)) {
                     QStyleOptionButton subopt = *btn;
                     subopt.rect = subElementRect(SE_PushButtonContents, btn, widget);
                     proxy()->drawControl(CE_PushButtonLabel, &subopt, painter, widget);
@@ -101,7 +125,7 @@ class QImagineStyle : public QProxyStyle
 
 private:
     QMap<QString, TNinePatch*> m_ninePatchImages;
-
+    QMap<QString, QPixmap> m_pixmaps;
 };
 
 int main(int argc, char *argv[])
