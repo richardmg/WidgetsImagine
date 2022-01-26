@@ -47,13 +47,20 @@ class MyProxyStyle : public QProxyStyle
         return fileName;
     }
 
+    TNinePatch *resolve9pImage(const QString &baseName, const QStyleOption *option) const
+    {
+        QString fileName = resolveFileName(baseName, option);
+        if (TNinePatch *npImage = m_ninePatchImages[fileName])
+            return npImage;
+        return nullptr;
+    }
+
     void drawControl(QStyle::ControlElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget = nullptr) const override
     {
         switch (element) {
         case CE_PushButton:
             if (const QStyleOptionButton *btn = qstyleoption_cast<const QStyleOptionButton *>(option)) {
-                QString fileName = resolveFileName("button-background", option);
-                if (TNinePatch *npImage = m_ninePatchImages[fileName]) {
+                if (TNinePatch *npImage = resolve9pImage("button-background", option)) {
                     npImage->draw(*painter, option->rect);
 
                     QStyleOptionButton subopt = *btn;
@@ -73,8 +80,7 @@ class MyProxyStyle : public QProxyStyle
     {
         switch (type)  {
         case CT_PushButton: {
-            QString fileName = resolveFileName("button-background", option);
-            if (TNinePatch *npImage = m_ninePatchImages[fileName])
+            if (TNinePatch *npImage = resolve9pImage("button-background", option))
                 return npImage->Image.size();
         }
         default:
