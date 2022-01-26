@@ -22,7 +22,7 @@ class QImagineStyle : public QProxyStyle
             if (fileName.contains(QLatin1String(".9."))) {
                 try {
                     // does this leak if exception is thrown?
-                    TNinePatch *npImage = new TNinePatch(QImage(fileName));
+                    QStyleNinePatchImage *npImage = new QStyleNinePatchImage(QImage(fileName));
                     m_ninePatchImages.insert(fileName, npImage);
                 } catch (NinePatchException *exception) {
                     qDebug() << "load, exception:" << exception->what();
@@ -49,7 +49,7 @@ class QImagineStyle : public QProxyStyle
     QSize imageSize(const QString &baseName, const QStyleOption *option) const
     {
         QString fileName9p = resolveFileName(baseName, option) + QStringLiteral(".9.png");
-        if (TNinePatch *npImage = m_ninePatchImages[fileName9p]) {
+        if (QStyleNinePatchImage *npImage = m_ninePatchImages[fileName9p]) {
             return npImage->m_image.size();
         }
 
@@ -64,7 +64,7 @@ class QImagineStyle : public QProxyStyle
     bool drawImage(const QString &baseName, const QStyleOption *option, QPainter *painter) const
     {
         QString fileName9p = resolveFileName(baseName, option) + QStringLiteral(".9.png");
-        if (TNinePatch *npImage = m_ninePatchImages[fileName9p]) {
+        if (QStyleNinePatchImage *npImage = m_ninePatchImages[fileName9p]) {
             npImage->draw(*painter, option->rect);
             return true;
         }
@@ -125,7 +125,7 @@ class QImagineStyle : public QProxyStyle
     }
 
 private:
-    QMap<QString, TNinePatch*> m_ninePatchImages;
+    QMap<QString, QStyleNinePatchImage*> m_ninePatchImages;
     QMap<QString, QPixmap> m_pixmaps;
 };
 

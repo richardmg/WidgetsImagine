@@ -1,7 +1,7 @@
 #include "ninepatch.h"
 #include <QRect>
 
-TNinePatch::TNinePatch(const QImage &image)
+QStyleNinePatchImage::QStyleNinePatchImage(const QImage &image)
     : m_image(image)
 {
     ContentArea = GetContentArea();
@@ -11,17 +11,17 @@ TNinePatch::TNinePatch(const QImage &image)
     }
 }
 
-TNinePatch::~TNinePatch() {
+QStyleNinePatchImage::~QStyleNinePatchImage() {
 }
 
-void TNinePatch::draw(QPainter& painter, const QRect &targetRect) {
+void QStyleNinePatchImage::draw(QPainter& painter, const QRect &targetRect) {
     const QPoint pos = targetRect.topLeft();
     const QSize size = targetRect.size();
     SetImageSize(size.width(), size.height());
     painter.drawImage(pos.x(), pos.y(), CachedImage);
 }
 
-void TNinePatch::SetImageSize(int width, int height) {
+void QStyleNinePatchImage::SetImageSize(int width, int height) {
     int resizeWidth = 0;
     int resizeHeight = 0;
     for (int i = 0; i < ResizeDistancesX.size(); i++) {
@@ -46,12 +46,12 @@ void TNinePatch::SetImageSize(int width, int height) {
     }
 }
 
-QRect TNinePatch::GetContentArea(int  width, int  height) {
+QRect QStyleNinePatchImage::GetContentArea(int  width, int  height) {
     return (QRect(ContentArea.x(), ContentArea.y(), (width - (m_image.width() - 2 -ContentArea.width())),
                   (height - (m_image.height() - 2 -ContentArea.height()))));
 }
 
-void TNinePatch::DrawScaledPart(QRect oldRect, QRect newRect, QPainter& painter) {
+void QStyleNinePatchImage::DrawScaledPart(QRect oldRect, QRect newRect, QPainter& painter) {
     if (newRect.width() && newRect.height()) {
         QImage img = m_image.copy(oldRect);
         img = img.scaled(newRect.width(), newRect.height());
@@ -59,7 +59,7 @@ void TNinePatch::DrawScaledPart(QRect oldRect, QRect newRect, QPainter& painter)
     }
 }
 
-void TNinePatch::DrawConstPart(QRect oldRect, QRect newRect, QPainter& painter) {
+void QStyleNinePatchImage::DrawConstPart(QRect oldRect, QRect newRect, QPainter& painter) {
     QImage img = m_image.copy(oldRect);
     painter.drawImage(newRect.x(), newRect.y(), img, 0, 0, newRect.width(), newRect.height());
 }
@@ -75,7 +75,7 @@ inline bool IsColorBlack(QRgb color) {
     return (r < 128 && g < 128 && b < 128);
 }
 
-QRect TNinePatch::GetContentArea() {
+QRect QStyleNinePatchImage::GetContentArea() {
     int  j = m_image.height() - 1;
     int  left = 0;
     int  right = 0;
@@ -111,7 +111,7 @@ QRect TNinePatch::GetContentArea() {
     return (QRect(left, top, right - left, bot - top));
 }
 
-void TNinePatch::GetResizeArea() {
+void QStyleNinePatchImage::GetResizeArea() {
     int  j = 0;
     int  left = 0;
     int  right = 0;
@@ -144,7 +144,7 @@ void TNinePatch::GetResizeArea() {
     }
 }
 
-void TNinePatch::GetFactor(int width, int height, double& factorX, double& factorY) {
+void QStyleNinePatchImage::GetFactor(int width, int height, double& factorX, double& factorY) {
     int topResize = width - (m_image.width() - 2);
     int leftResize = height - (m_image.height() - 2);
     for (int i = 0; i < ResizeDistancesX.size(); i++) {
@@ -159,7 +159,7 @@ void TNinePatch::GetFactor(int width, int height, double& factorX, double& facto
     factorY = (double)leftResize / factorY;
 }
 
-void TNinePatch::UpdateCachedImage(int width, int height) {
+void QStyleNinePatchImage::UpdateCachedImage(int width, int height) {
     CachedImage =  QImage(width, height, QImage::Format_ARGB32_Premultiplied);
     CachedImage.fill(QColor(0,0,0,0));
     QPainter painter(&CachedImage);

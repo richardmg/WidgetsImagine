@@ -6,10 +6,10 @@
 #include <exception>
 #include <string>
 
-class TNinePatch {
+class QStyleNinePatchImage {
 public:
-    TNinePatch(const QImage& image);
-    ~TNinePatch();
+    QStyleNinePatchImage(const QImage& image);
+    ~QStyleNinePatchImage();
 
     void draw(QPainter& painter, const QRect &targetRect);
 
