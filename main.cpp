@@ -46,32 +46,32 @@ class QImagineStyle : public QProxyStyle
         return fileName;
     }
 
-    TNinePatch *resolve9pImage(const QString &baseName, const QStyleOption *option) const
+    QSize imageSize(const QString &baseName, const QStyleOption *option) const
     {
-        QString fileName = resolveFileName(baseName, option) + QStringLiteral(".9.png");
-        if (TNinePatch *npImage = m_ninePatchImages[fileName])
-            return npImage;
-        qWarning() << "Could not resolve image:" << fileName;
-        return nullptr;
-    }
+        QString fileName9p = resolveFileName(baseName, option) + QStringLiteral(".9.png");
+        if (TNinePatch *npImage = m_ninePatchImages[fileName9p]) {
+            return npImage->m_image.size();
+        }
 
-    QPixmap resolvePixmap(const QString &baseName, const QStyleOption *option) const
-    {
-        QString fileName = resolveFileName(baseName, option) + QStringLiteral(".png");
-        if (m_pixmaps.contains(fileName))
-            return m_pixmaps[fileName];
-        return QPixmap();
+        QString fileNameNon9p = resolveFileName(baseName, option) + QStringLiteral(".png");
+        if (m_pixmaps.contains(fileNameNon9p)) {
+            return m_pixmaps[fileNameNon9p].size();
+        }
+
+        return QSize();
     }
 
     bool drawImage(const QString &baseName, const QStyleOption *option, QPainter *painter) const
     {
-        if (TNinePatch *npImage = resolve9pImage(baseName, option)) {
+        QString fileName9p = resolveFileName(baseName, option) + QStringLiteral(".9.png");
+        if (TNinePatch *npImage = m_ninePatchImages[fileName9p]) {
             npImage->draw(*painter, option->rect);
             return true;
         }
-        QPixmap pixmap = resolvePixmap(baseName, option);
-        if (!pixmap.isNull()) {
-            painter->drawPixmap(option->rect.topLeft(), pixmap);
+
+        QString fileNameNon9p = resolveFileName(baseName, option) + QStringLiteral(".png");
+        if (m_pixmaps.contains(fileNameNon9p)) {
+            painter->drawPixmap(option->rect.topLeft(), m_pixmaps[fileNameNon9p]);
             return true;
         }
 
@@ -113,8 +113,9 @@ class QImagineStyle : public QProxyStyle
     {
         switch (type)  {
         case CT_PushButton: {
-            if (TNinePatch *npImage = resolve9pImage("button-background", option))
-                return npImage->m_image.size();
+            const QSize pixmapSize = imageSize("button-background", option);
+            if (!pixmapSize.isNull())
+                return pixmapSize;
         }
         default:
             break;
