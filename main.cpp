@@ -6,7 +6,7 @@
 #include <QStyleOption>
 #include <QPainter>
 
-#include "NinePatchQt/ninepatch.h"
+#include "ninepatch.h"
 
 class QImagineStyle : public QProxyStyle
 {
