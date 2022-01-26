@@ -1,0 +1,3 @@
+[submodule "NinePatchQt"]
+	path = NinePatchQt
+	url = https://github.com/Roninsc2/NinePatchQt.git
