@@ -47,6 +47,7 @@ class QImagineStyle : public QProxyStyle
         QString fileName = resolveFileName(baseName, option);
         if (TNinePatch *npImage = m_ninePatchImages[fileName])
             return npImage;
+        qWarning() << "Could not resolve image:" << fileName;
         return nullptr;
     }
 
@@ -64,6 +65,19 @@ class QImagineStyle : public QProxyStyle
                 }
                 return;
             }
+        case CE_CheckBox: {
+            if (const QStyleOptionButton *btn = qstyleoption_cast<const QStyleOptionButton *>(option)) {
+                if (TNinePatch *npImage = resolve9pImage("checkbox-indicator", option)) {
+                    npImage->draw(*painter, option->rect);
+
+                    QStyleOptionButton subopt = *btn;
+                    subopt.rect = subElementRect(SE_PushButtonContents, btn, widget);
+                    proxy()->drawControl(CE_PushButtonLabel, &subopt, painter, widget);
+                }
+                return;
+            }
+
+        }
         default:
             break;
         }
