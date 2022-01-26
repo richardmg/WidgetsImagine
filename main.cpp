@@ -6,6 +6,8 @@
 #include <QStyleOption>
 #include <QPainter>
 
+#include "NinePatchQt/ninepatch.h"
+
 class MyProxyStyle : public QProxyStyle
 {
   public:
@@ -14,8 +16,9 @@ class MyProxyStyle : public QProxyStyle
     {
         switch (element) {
         case CE_PushButton: {
-            QPixmap pixmap(QStringLiteral(":/images/button-background.9.png"));
-            painter->drawPixmap(option->rect, pixmap);
+            QImage image(QStringLiteral(":/images/button-background.9.png"));
+            TNinePatch npImage(image);
+            npImage.draw(*painter, option->rect);
             break; }
         default:
             QProxyStyle::drawControl(element, option, painter, widget);
