@@ -12,19 +12,10 @@ class QImagineStyle : public QProxyStyle
 {
   public:
 
-    QImagineStyle()
-    {
-        loadAndCacheImages();
-    }
-
-    ~QImagineStyle() {
-        qDeleteAll(m_ninePatchImages);
-    }
-
-    void loadAndCacheImages()
+    QImagineStyle(const QString &imagePath)
     {
         // TODO: remove duplicates, only cache images of correct size (@2x, @3x etc).
-        QDirIterator it(QStringLiteral(":/images"), { "*.9.png" }, QDir::Files);
+        QDirIterator it(imagePath, { "*.9.png" }, QDir::Files);
         while (it.hasNext()) {
             const QString fileName = it.next();
             const QImage image(fileName);
@@ -36,6 +27,10 @@ class QImagineStyle : public QProxyStyle
                 qDebug() << "load, exception:" << exception->what();
             }
         }
+    }
+
+    ~QImagineStyle() {
+        qDeleteAll(m_ninePatchImages);
     }
 
     QString resolveFileName(const QString &baseName, const QStyleOption *option) const
@@ -97,10 +92,12 @@ private:
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
-//    loadAndCacheImages();
-    a.setStyle(new QImagineStyle);
+    QApplication app(argc, argv);
+
+    app.setStyle(new QImagineStyle(QStringLiteral(":/images")));
+
     MainWindow w;
     w.show();
-    return a.exec();
+
+    return app.exec();
 }
