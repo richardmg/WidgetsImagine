@@ -109,23 +109,12 @@ class QImagineStyle : public QProxyStyle
             const QWidget *widget = nullptr) const override
     {
         switch (element) {
-        case CE_PushButton: {
-            drawControl(CE_PushButtonBevel, option, painter, widget);
-            drawControl(CE_PushButtonLabel, option, painter, widget);
-            return;
-        }
         case CE_PushButtonBevel:
             if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
                 if (const auto imagineImage = resolveImage(baseNameButton(buttonOption), buttonOption)) {
                     imagineImage->draw(painter, buttonOption->rect);
                     return;
                 }
-            }
-        case CE_CheckBox:
-            if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
-                drawPrimitive(PE_IndicatorCheckBox, option, painter, widget);
-                drawControl(CE_CheckBoxLabel, buttonOption, painter, widget);
-                return;
             }
         case CE_FocusFrame:
             // TODO: adjust size to be outside option->rect
