@@ -36,7 +36,7 @@ class QImagineStyle : public QProxyStyle
         qDeleteAll(m_images);
     }
 
-    QSize imageSize(const QString &baseName, const QStyleOption *option) const
+    QImagineStyleImage *resolveImage(const QString &baseName, const QStyleOption *option) const
     {
         Q_UNUSED(option);
         // try with different endings, .9., @2x. etc, and append .png
@@ -46,37 +46,16 @@ class QImagineStyle : public QProxyStyle
 
         QString fileName = baseName + nine + png;
         if (const auto imagineImage = m_images[fileName])
-            return imagineImage->size();
+            return imagineImage;
 
         fileName = baseName + png;
         if (const auto imagineImage = m_images[fileName])
-            return imagineImage->size();
+            return imagineImage;
 
-        return QSize();
+        return nullptr;
     }
 
-    bool drawImage(const QString &baseName, const QStyleOption *option, QPainter *painter) const
-    {
-        // try with different endings, .9., @2x. etc, and append .png
-
-        static const QString nine = QStringLiteral(".9");
-        static const QString png = QStringLiteral(".png");
-
-        QString fileName = baseName + nine + png;
-        if (const auto imagineImage = m_images[fileName]) {
-            imagineImage->draw(painter, option->rect);
-            return true;
-        }
-
-        fileName = baseName + png;
-        if (const auto imagineImage = m_images[fileName]) {
-            imagineImage->draw(painter, option->rect);
-            return true;
-        }
-
-        qWarning() << "Could not resolve image:" << baseName;
-        return false;
-    }
+    // -----------------------------------------------------------------------
 
     QString baseNameButton(const QStyleOptionButton *option) const
     {
@@ -98,12 +77,15 @@ class QImagineStyle : public QProxyStyle
         return fileName;
     }
 
+    // -----------------------------------------------------------------------
+
     void drawControl(QStyle::ControlElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget = nullptr) const override
     {
         switch (element) {
         case CE_PushButton:
             if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
-                if (drawImage(baseNameButton(buttonOption), option, painter)) {
+                if (const auto imagineImage = resolveImage(baseNameButton(buttonOption), buttonOption)) {
+                    imagineImage->draw(painter, buttonOption->rect);
                     QStyleOptionButton subopt = *buttonOption;
                     subopt.rect = subElementRect(SE_PushButtonContents, buttonOption, widget);
                     proxy()->drawControl(CE_PushButtonLabel, &subopt, painter, widget);
@@ -112,7 +94,8 @@ class QImagineStyle : public QProxyStyle
             }
         case CE_CheckBox: {
             if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
-                if (drawImage(baseNameCheckBox(buttonOption), buttonOption, painter)) {
+                if (const auto imagineImage = resolveImage(baseNameCheckBox(buttonOption), buttonOption)) {
+                    imagineImage->draw(painter, buttonOption->rect);
                     QStyleOptionButton subopt = *buttonOption;
                     subopt.rect = subElementRect(SE_PushButtonContents, buttonOption, widget);
                     proxy()->drawControl(CE_PushButtonLabel, &subopt, painter, widget);
@@ -133,9 +116,8 @@ class QImagineStyle : public QProxyStyle
         switch (type)  {
         case CT_PushButton: {
             if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
-                const QSize pixmapSize = imageSize(baseNameButton(buttonOption), buttonOption);
-                if (!pixmapSize.isNull())
-                    return pixmapSize;
+                if (const auto imagineImage = resolveImage(baseNameButton(buttonOption), buttonOption))
+                    return imagineImage->size();
             }
         }
         default:
@@ -148,6 +130,8 @@ class QImagineStyle : public QProxyStyle
 private:
     QMap<QString, QImagineStyleImage*> m_images;
 };
+
+// -----------------------------------------------------------------------
 
 int main(int argc, char *argv[])
 {
