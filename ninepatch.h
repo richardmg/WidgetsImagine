@@ -32,14 +32,14 @@ public:
     QSize size() const override;
 
 private:
-    QRect GetContentArea(int  widht, int  height);
-    QRect GetContentArea();
-    void GetResizeArea();
-    void GetFactor(int width, int height, double& factorX, double& factorY);
-    void UpdateCachedImage(int width, int height);
-    void DrawScaledPart(QRect oldRect, QRect newRect, QPainter& painter);
-    void DrawConstPart(QRect oldRect, QRect newRect, QPainter& painter);
-    void SetImageSize(int width, int height);
+    QRect getContentArea(int  widht, int  height);
+    QRect getContentArea();
+    void getResizeArea();
+    void getFactor(int width, int height, double& factorX, double& factorY);
+    void updateCachedImage(int width, int height);
+    void drawScaledPart(QRect oldRect, QRect newRect, QPainter& painter);
+    void drawConstPart(QRect oldRect, QRect newRect, QPainter& painter);
+    void setImageSize(int width, int height);
 
 private:
     QImage m_image;
