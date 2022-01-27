@@ -82,32 +82,47 @@ class QImagineStyle : public QProxyStyle
     void drawControl(QStyle::ControlElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget = nullptr) const override
     {
         switch (element) {
-        case CE_PushButton:
+        case CE_PushButton: {
+            drawControl(CE_PushButtonBevel, option, painter, widget);
+            drawControl(CE_PushButtonLabel, option, painter, widget);
+            return;
+        }
+        case CE_PushButtonBevel:
             if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
                 if (const auto imagineImage = resolveImage(baseNameButton(buttonOption), buttonOption)) {
                     imagineImage->draw(painter, buttonOption->rect);
-                    QStyleOptionButton subopt = *buttonOption;
-                    subopt.rect = subElementRect(SE_PushButtonContents, buttonOption, widget);
-                    proxy()->drawControl(CE_PushButtonLabel, &subopt, painter, widget);
                     return;
                 }
             }
-        case CE_CheckBox: {
+        case CE_PushButtonLabel:
+            if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
+                QStyleOptionButton subopt = *buttonOption;
+                subopt.rect = subElementRect(SE_PushButtonContents, buttonOption, widget);
+                QProxyStyle::drawControl(CE_PushButtonLabel, &subopt, painter, widget);
+                return;
+            }
+        case CE_CheckBox:
             if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
                 if (const auto imagineImage = resolveImage(baseNameCheckBox(buttonOption), buttonOption)) {
                     imagineImage->draw(painter, buttonOption->rect);
-                    QStyleOptionButton subopt = *buttonOption;
-                    subopt.rect = subElementRect(SE_PushButtonContents, buttonOption, widget);
-                    proxy()->drawControl(CE_PushButtonLabel, &subopt, painter, widget);
                     return;
                 }
             }
-
-        }
+        case CE_CheckBoxLabel:
+            if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
+                QStyleOptionButton subopt = *buttonOption;
+                subopt.rect = subElementRect(SE_PushButtonContents, buttonOption, widget);
+                QProxyStyle::drawControl(CE_PushButtonLabel, &subopt, painter, widget);
+                return;
+            }
+        case CE_FocusFrame:
+            // TODO: adjust size to be outside option->rect
+            return;
         default:
             break;
         }
 
+        qDebug() << "fall back:" << element;
         QProxyStyle::drawControl(element, option, painter, widget);
     }
 
