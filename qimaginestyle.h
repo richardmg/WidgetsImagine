@@ -21,15 +21,23 @@ class QImagineStyle : public QProxyStyle
         while (it.hasNext()) {
             const QString fileName = it.next();
 
-            if (fileName.contains(QLatin1String(".9."))) {
+            const bool is2x = fileName.contains(QLatin1String("@2x"));
+            const bool is3x = fileName.contains(QLatin1String("@3x"));
+            const bool is9p = fileName.contains(QLatin1String(".9."));
+
+            if (is9p) {
                 try {
                     // does this leak if exception is thrown?
-                    m_images.insert(fileName, new QStyleNinePatchImage(QImage(fileName)));
+                    QImage image(fileName);
+                    image.setDevicePixelRatio(is2x ? 2.0 : is3x ? 3.0 : 1.0);
+                    m_images.insert(fileName, new QStyleNinePatchImage(image));
                 } catch (NinePatchException *exception) {
                     qDebug() << "load, exception:" << exception->what();
                 }
             } else {
-                m_images.insert(fileName, new QImagineStyleFixedImage(QPixmap(fileName)));
+                QPixmap pixmap(fileName);
+                pixmap.setDevicePixelRatio(is2x ? 2.0 : is3x ? 3.0 : 1.0);
+                m_images.insert(fileName, new QImagineStyleFixedImage(pixmap));
             }
         }
     }
