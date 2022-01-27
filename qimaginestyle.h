@@ -81,10 +81,14 @@ class QImagineStyle : public QProxyStyle
     QString baseNameButton(const QString &subType, const QStyleOptionButton *option) const
     {
         QString fileName = QStringLiteral(":/images/%1").arg(subType);
-        if (option->state & QStyle::State_On)
-            fileName += QStringLiteral("-checked");
-        else if (option->state & QStyle::State_Sunken)
+        if (option->state & QStyle::State_Sunken) {
             fileName += QLatin1String("-pressed");
+        } else {
+            if (option->state & QStyle::State_On)
+                fileName += QStringLiteral("-checked");
+            if (option->state & QStyle::State_HasFocus)
+                fileName += QStringLiteral("-focused");
+        }
         return fileName;
     }
 
