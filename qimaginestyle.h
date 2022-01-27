@@ -110,6 +110,8 @@ class QImagineStyle : public QProxyStyle
     {
         Q_UNUSED(option);
         QString fileName = QStringLiteral(":/images/textfield-background");
+        if (option->state & QStyle::State_HasFocus)
+            fileName += QStringLiteral("-focused");
         return fileName;
     }
 
