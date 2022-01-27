@@ -187,6 +187,8 @@ class QImagineStyle : public QProxyStyle
         QProxyStyle::drawControl(element, option, painter, widget);
     }
 
+// -----------------------------------------------------------------------
+
     void drawComplexControl(
             ComplexControl element,
             const QStyleOptionComplex *option,
