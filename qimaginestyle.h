@@ -119,6 +119,26 @@ class QImagineStyle : public QProxyStyle
         return fileName;
     }
 
+    QString baseNameComboBoxBackground(const QStyleOptionComboBox *option) const
+    {
+        Q_UNUSED(option);
+        QString fileName = QStringLiteral(":/images/combobox-background");
+        if (option->editable)
+            fileName += QStringLiteral("-editable");
+        if (option->state & QStyle::State_HasFocus)
+            fileName += QStringLiteral("-focused");
+        return fileName;
+    }
+
+    QString baseNameComboBoxIndicator(const QStyleOptionComboBox *option) const
+    {
+        Q_UNUSED(option);
+        QString fileName = QStringLiteral(":/images/combobox-indicator");
+        if (option->editable)
+            fileName += QStringLiteral("-editable");
+        return fileName;
+    }
+
 // -----------------------------------------------------------------------
 
     void drawPrimitive(
@@ -136,6 +156,7 @@ class QImagineStyle : public QProxyStyle
                     return;
                 }
             }
+            break;
         case PE_IndicatorRadioButton:
             if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
                 const QString baseName = baseNameButton(QStringLiteral("radiobutton-indicator"), buttonOption);
@@ -144,6 +165,7 @@ class QImagineStyle : public QProxyStyle
                     return;
                 }
             }
+            break;
         case PE_PanelLineEdit:
             if (const QStyleOptionFrame *frameOption = qstyleoption_cast<const QStyleOptionFrame *>(option)) {
                 const QString baseName = baseNameTextInput(frameOption);
@@ -153,6 +175,7 @@ class QImagineStyle : public QProxyStyle
                 }
                 return;
             }
+            break;
         default:
             break;
         }
@@ -177,6 +200,17 @@ class QImagineStyle : public QProxyStyle
                     return;
                 }
             }
+            break;
+        case CE_ComboBoxLabel:
+            return;
+//            if (const auto *comboOption = qstyleoption_cast<const QStyleOptionComboBox *>(option)) {
+//                const QString baseName = baseNameComboBoxBackground(comboOption);
+//                if (const auto imagineImage = resolveImage(baseName, comboOption)) {
+//                    imagineImage->draw(painter, comboOption->rect);
+//                    return;
+//                }
+//            }
+            break;
         case CE_FocusFrame:
             // TODO: adjust size to be outside option->rect
             return;
@@ -195,6 +229,8 @@ class QImagineStyle : public QProxyStyle
             QPainter *painter,
             const QWidget *widget) const override
     {
+        const SubControls subControls = option->subControls;
+
         switch (element) {
         case CC_Slider:
             if (const auto *sliderOption = qstyleoption_cast<const QStyleOptionSlider *>(option)) {
@@ -207,6 +243,25 @@ class QImagineStyle : public QProxyStyle
                     return;
                 }
             }
+            break;
+        case CC_ComboBox:
+            if (const auto *comboOption = qstyleoption_cast<const QStyleOptionComboBox *>(option)) {
+                if (subControls & SC_ComboBoxFrame) {
+                    const QString baseName = baseNameComboBoxBackground(comboOption);
+                    if (const auto imagineImage = resolveImage(baseName, comboOption))
+                        imagineImage->draw(painter, comboOption->rect);
+                }
+                if (subControls & SC_ComboBoxArrow) {
+                    const QString baseName = baseNameComboBoxIndicator(comboOption);
+                    if (const auto imagineImage = resolveImage(baseName, comboOption))
+                        imagineImage->draw(painter, comboOption->rect);
+                }
+                if (subControls & SC_ComboBoxEditField) {
+
+                }
+                return;
+            }
+            break;
         default:
             break;
         }
