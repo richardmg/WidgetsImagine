@@ -4,7 +4,7 @@
 QStyleNinePatchImage::QStyleNinePatchImage(const QImage &image)
     : m_image(image)
 {
-    m_contentArea = getContentArea();
+    updateContentArea();
     getResizeArea();
     if (!m_resizeDistancesX.size() || !m_resizeDistancesY.size()) {
         throw new ExceptionNot9Patch;
@@ -50,11 +50,6 @@ void QStyleNinePatchImage::setImageSize(int width, int height) {
     }
 }
 
-QRect QStyleNinePatchImage::getContentArea(int  width, int  height) {
-    return (QRect(m_contentArea.x(), m_contentArea.y(), (width - (m_image.width() - 2 -m_contentArea.width())),
-                  (height - (m_image.height() - 2 -m_contentArea.height()))));
-}
-
 void QStyleNinePatchImage::drawScaledPart(QRect oldRect, QRect newRect, QPainter& painter) {
     if (newRect.width() && newRect.height()) {
         QImage img = m_image.copy(oldRect);
@@ -68,51 +63,53 @@ void QStyleNinePatchImage::drawConstPart(QRect oldRect, QRect newRect, QPainter&
     painter.drawImage(newRect.x(), newRect.y(), img, 0, 0, newRect.width(), newRect.height());
 }
 
-inline bool IsColorBlack(QRgb color) {
-    auto r = qRed(color);
-    auto g = qGreen(color);
-    auto b = qBlue(color);
-    auto a = qAlpha(color);
-    if (a < 128) {
+inline bool pixelsBlack(QRgb color)
+{
+    const auto r = qRed(color);
+    const auto g = qGreen(color);
+    const auto b = qBlue(color);
+    const auto a = qAlpha(color);
+    if (a < 128)
         return false;
-    }
+
     return (r < 128 && g < 128 && b < 128);
 }
 
-QRect QStyleNinePatchImage::getContentArea() {
-    int  j = m_image.height() - 1;
-    int  left = 0;
-    int  right = 0;
-    for(int  i = 0; i < m_image.width() ; i++) {
-        if (IsColorBlack(m_image.pixel(i, j)) && left == 0) {
-            left = i;
-        } else {
-            if (left != 0 && IsColorBlack(m_image.pixel(i, j))) {
-                right = i;
-            }
+void QStyleNinePatchImage::updateContentArea()
+{
+    const int bottomLine = m_image.height() - 1;
+    const int rightLine = m_image.width() - 1;
+
+    // Find start and end pixel for the bottom line
+    int left = 0, right = 0;
+    for (int x = 0; x < m_image.width(); x++) {
+        if (pixelsBlack(m_image.pixel(x, bottomLine))) {
+            if (left == 0)
+                left = x;
+            else
+                right = x;
         }
     }
-    if (left && !right) {
+
+    int top = 0, bottom = 0;
+    for (int y = 0; y < m_image.height(); y++) {
+        if (pixelsBlack(m_image.pixel(rightLine, y))) {
+            if (top == 0)
+                top = y;
+            else
+                bottom = y;
+        }
+    }
+
+    if (right == 0)
         right = left;
-    }
-    left -= 1;
-    int  i = m_image.width() - 1;
-    int  top = 0;
-    int  bot = 0;
-    for(int  j = 0; j < m_image.height() ; j++) {
-        if (IsColorBlack(m_image.pixel(i, j)) && top == 0) {
-            top = j;
-        } else {
-            if (top && IsColorBlack(m_image.pixel(i, j))) {
-                bot = j;
-            }
-        }
-    }
-    if (top && !bot) {
-        bot = top;
-    }
+    if (bottom == 0)
+        bottom = top;
+
+    left -= 1; // why do we do this?
     top -= 1;
-    return (QRect(left, top, right - left, bot - top));
+
+    m_contentArea = QRect(left, top, right - left, bottom - top);
 }
 
 void QStyleNinePatchImage::getResizeArea() {
@@ -120,10 +117,10 @@ void QStyleNinePatchImage::getResizeArea() {
     int  left = 0;
     int  right = 0;
     for(int  i = 0; i < m_image.width(); i++) {
-        if (IsColorBlack(m_image.pixel(i, j)) && left == 0) {
+        if (pixelsBlack(m_image.pixel(i, j)) && left == 0) {
             left = i;
         }
-        if (left && IsColorBlack(m_image.pixel(i, j)) && !IsColorBlack(m_image.pixel(i+1, j))) {
+        if (left && pixelsBlack(m_image.pixel(i, j)) && !pixelsBlack(m_image.pixel(i+1, j))) {
             right = i;
             left -= 1;
             m_resizeDistancesX.push_back(std::make_pair(left, right - left));
@@ -135,10 +132,10 @@ void QStyleNinePatchImage::getResizeArea() {
     int  top = 0;
     int  bot = 0;
     for(int  j = 0; j < m_image.height(); j++) {
-        if (IsColorBlack(m_image.pixel(i, j)) && top == 0) {
+        if (pixelsBlack(m_image.pixel(i, j)) && top == 0) {
             top = j;
         }
-        if (top && IsColorBlack(m_image.pixel(i, j)) && !IsColorBlack(m_image.pixel(i, j+1))) {
+        if (top && pixelsBlack(m_image.pixel(i, j)) && !pixelsBlack(m_image.pixel(i, j+1))) {
             bot = j;
             top -= 1;
             m_resizeDistancesY.push_back(std::make_pair(top, bot - top));

@@ -32,8 +32,7 @@ public:
     QSize size() const override;
 
 private:
-    QRect getContentArea(int  widht, int  height);
-    QRect getContentArea();
+    void updateContentArea();
     void getResizeArea();
     void getFactor(int width, int height, double& factorX, double& factorY);
     void updateCachedImage(int width, int height);
