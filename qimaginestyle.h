@@ -108,8 +108,14 @@ class QImagineStyle : public QProxyStyle
         QString fileName = QStringLiteral(":/images/slider-background");
         if (option->state & QStyle::State_Horizontal)
             fileName += QStringLiteral("-horizontal");
-        if (option->state & QStyle::State_On)
-            fileName += QStringLiteral("-checked");
+        return fileName;
+    }
+
+    QString baseNameSliderProgress(const QStyleOptionSlider *option) const
+    {
+        QString fileName = QStringLiteral(":/images/slider-progress");
+        if (option->state & QStyle::State_Horizontal)
+            fileName += QStringLiteral("-horizontal");
         return fileName;
     }
 
@@ -252,6 +258,15 @@ class QImagineStyle : public QProxyStyle
                 const QString baseNameBackground = baseNameSliderBackground(sliderOption);
                 if (const auto imagineImage = resolveImage(baseNameBackground, sliderOption)) {
                     imagineImage->draw(painter, sliderOption->rect);
+
+                    const QString baseNameProgress = baseNameSliderProgress(sliderOption);
+                    if (const auto imagineImage = resolveImage(baseNameProgress, sliderOption, true)) {
+                        QRect progressRect = proxy()->subControlRect(CC_Slider, sliderOption, SC_SliderGroove, widget);
+                        const qreal scale = sliderOption->sliderValue / qMax(0.001, qreal(sliderOption->maximum - sliderOption->minimum));
+                        progressRect.setWidth(progressRect.width() * scale);
+                        imagineImage->draw(painter, progressRect);
+                    }
+
                     const QString baseNameHandle = baseNameSliderHandle(sliderOption);
                     if (const auto imagineImage = resolveImage(baseNameHandle, sliderOption)) {
                         const QRect handleRect = proxy()->subControlRect(CC_Slider, sliderOption, SC_SliderHandle, widget);
