@@ -33,7 +33,7 @@ public:
 
 private:
     void updateContentArea();
-    void getResizeArea();
+    void updateResizeArea();
     void getFactor(int width, int height, double& factorX, double& factorY);
     void updateCachedImage(int width, int height);
     void drawScaledPart(QRect oldRect, QRect newRect, QPainter& painter);

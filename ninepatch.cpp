@@ -5,10 +5,10 @@ QStyleNinePatchImage::QStyleNinePatchImage(const QImage &image)
     : m_image(image)
 {
     updateContentArea();
-    getResizeArea();
-    if (!m_resizeDistancesX.size() || !m_resizeDistancesY.size()) {
+    updateResizeArea();
+
+    if (!m_resizeDistancesX.size() || !m_resizeDistancesY.size())
         throw new ExceptionNot9Patch;
-    }
 }
 
 QStyleNinePatchImage::~QStyleNinePatchImage()
@@ -112,26 +112,27 @@ void QStyleNinePatchImage::updateContentArea()
     m_contentArea = QRect(left, top, right - left, bottom - top);
 }
 
-void QStyleNinePatchImage::getResizeArea() {
-    int  j = 0;
-    int  left = 0;
-    int  right = 0;
-    for(int  i = 0; i < m_image.width(); i++) {
-        if (pixelsBlack(m_image.pixel(i, j)) && left == 0) {
-            left = i;
-        }
-        if (left && pixelsBlack(m_image.pixel(i, j)) && !pixelsBlack(m_image.pixel(i+1, j))) {
-            right = i;
-            left -= 1;
-            m_resizeDistancesX.push_back(std::make_pair(left, right - left));
-            right = 0;
-            left = 0;
+void QStyleNinePatchImage::updateResizeArea()
+{
+    const int topLine = 0;
+    int left = 0;
+
+    for (int x = 0; x < m_image.width(); x++) {
+        if (pixelsBlack(m_image.pixel(x, topLine))) {
+            if (left == 0) {
+                left = x;
+            } else if (!pixelsBlack(m_image.pixel(x + 1, topLine))) {
+                m_resizeDistancesX.push_back(std::make_pair(left - 1, x - left));
+                left = 0;
+            }
         }
     }
-    int  i = 0;
-    int  top = 0;
-    int  bot = 0;
-    for(int  j = 0; j < m_image.height(); j++) {
+
+    int i = 0;
+    int top = 0;
+    int bot = 0;
+
+    for (int j = 0; j < m_image.height(); j++) {
         if (pixelsBlack(m_image.pixel(i, j)) && top == 0) {
             top = j;
         }
