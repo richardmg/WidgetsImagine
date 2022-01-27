@@ -58,7 +58,7 @@ class QImagineStyle : public QProxyStyle
 
         // Works for now, but scale factor should really be depending on QPainter paint device dpr?
         QString scale;
-        const int dpr = 1.0;//qApp->primaryScreen()->devicePixelRatio();
+        const int dpr = qApp->primaryScreen()->devicePixelRatio();
         if (dpr == 2)
             scale = scale2x;
 

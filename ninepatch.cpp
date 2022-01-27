@@ -18,9 +18,10 @@ QStyleNinePatchImage::~QStyleNinePatchImage()
 
 void QStyleNinePatchImage::draw(QPainter *painter, const QRect &targetRect) const
 {
+    const qreal dpr = m_image.devicePixelRatio();
     const QPoint pos = targetRect.topLeft();
-    const QSize size = targetRect.size();
-    const_cast<QStyleNinePatchImage *>(this)->setImageSize(size.width(), size.height());
+    const QSize imageSize = targetRect.size() * dpr;
+    const_cast<QStyleNinePatchImage *>(this)->setImageSize(imageSize.width(), imageSize.height());
     painter->drawImage(pos.x(), pos.y(), m_cachedImage);
 }
 
@@ -29,39 +30,44 @@ QSize QStyleNinePatchImage::size() const
     return m_image.size();
 }
 
-void QStyleNinePatchImage::setImageSize(int width, int height) {
+void QStyleNinePatchImage::setImageSize(int width, int height)
+{
     int resizeWidth = 0;
     int resizeHeight = 0;
 
-    for (int i = 0; i < m_resizeDistancesX.size(); i++) {
+    for (int i = 0; i < m_resizeDistancesX.size(); i++)
           resizeWidth += m_resizeDistancesX[i].second;
-    }
-
-    for (int i = 0; i < m_resizeDistancesY.size(); i++) {
+    for (int i = 0; i < m_resizeDistancesY.size(); i++)
           resizeHeight += m_resizeDistancesY[i].second;
-    }
 
     width = qMax(width, (m_image.width() - 2 - resizeWidth));
     height = qMax(height, (m_image.height() - 2 - resizeHeight));
 
-    if (width != m_prevWidth || height != m_prevHeight) {
-        m_prevWidth = width;
-        m_prevHeight = height;
+    if (width != m_cachedImage.width() || height != m_cachedImage.height())
         updateCachedImage(width, height);
-    }
 }
 
-void QStyleNinePatchImage::drawScaledPart(QRect oldRect, QRect newRect, QPainter& painter) {
-    if (newRect.width() && newRect.height()) {
-        QImage img = m_image.copy(oldRect);
-        img = img.scaled(newRect.width(), newRect.height());
-        painter.drawImage(newRect.x(), newRect.y(), img, 0, 0, newRect.width(), newRect.height());
-    }
+void QStyleNinePatchImage::drawScaledPart(QRect oldRect, QRect newRect, QPainter& painter)
+{
+    if (newRect.isEmpty())
+        return;
+
+    QImage img = m_image.copy(oldRect);
+    img = img.scaled(newRect.width(), newRect.height());
+
+    // Since we're working with actual pixels (and not points)
+    // we need to undo the scaling set on the painter
+    const qreal dpr = painter.device()->devicePixelRatio();
+    painter.drawImage(newRect.x() / dpr, newRect.y() / dpr, img);
 }
 
 void QStyleNinePatchImage::drawConstPart(QRect oldRect, QRect newRect, QPainter& painter) {
     QImage img = m_image.copy(oldRect);
-    painter.drawImage(newRect.x(), newRect.y(), img, 0, 0, newRect.width(), newRect.height());
+    const qreal dpr = painter.device()->devicePixelRatio();
+
+    // Since we're working with actual pixels (and not points)
+    // we need to undo the scaling set on the painter
+    painter.drawImage(newRect.x() / dpr, newRect.y() / dpr, img);
 }
 
 inline bool pixelsBlack(QRgb color)
@@ -130,6 +136,7 @@ void QStyleNinePatchImage::updateResizeArea()
         }
 
         if (!pixelsBlack(m_image.pixel(x + 1, topLine))) {
+            // Store the current line segment, and continue to search for the next
             m_resizeDistancesX.push_back(std::make_pair(left - 1, right - left + 1));
             left = 0;
         }
@@ -147,14 +154,15 @@ void QStyleNinePatchImage::updateResizeArea()
         }
 
         if (!pixelsBlack(m_image.pixel(topLine, y + 1))) {
-            // Store the current line segment, and continue to search for next
+            // Store the current line segment, and continue to search for the next
             m_resizeDistancesY.push_back(std::make_pair(top - 1, bottom - top + 1));
             top = 0;
         }
     }
 }
 
-void QStyleNinePatchImage::getFactor(int width, int height, double& factorX, double& factorY) {
+void QStyleNinePatchImage::getFactor(int width, int height, double& factorX, double& factorY)
+{
     int topResize = width - (m_image.width() - 2);
     int leftResize = height - (m_image.height() - 2);
     for (int i = 0; i < m_resizeDistancesX.size(); i++) {
@@ -176,7 +184,8 @@ void QStyleNinePatchImage::updateCachedImage(int width, int height)
     // be unnecessary.
 
     m_cachedImage = QImage(width, height, QImage::Format_ARGB32_Premultiplied);
-    m_cachedImage.fill(QColor(0,0,0,0));
+    m_cachedImage.setDevicePixelRatio(m_image.devicePixelRatio());
+    m_cachedImage.fill(0);
 
     QPainter painter(&m_cachedImage);
 
@@ -205,7 +214,8 @@ void QStyleNinePatchImage::updateCachedImage(int width, int height)
             drawConstPart(QRect(x1 + 1, y1 + 1, widthResize, heightResize),
                           QRect(x1 + offsetX, y1 + offsetY, widthResize, heightResize), painter);
 
-            int  y2 = m_resizeDistancesY[j].first;
+            int y2 = m_resizeDistancesY[j].first;
+
             heightResize = m_resizeDistancesY[j].second;
             resizeY = round((double)heightResize * factorY);
             lostY += resizeY - ((double)heightResize * factorY);
@@ -218,6 +228,7 @@ void QStyleNinePatchImage::updateCachedImage(int width, int height)
                     lostY -= 1.0;
                 }
             }
+
             drawScaledPart(QRect(x1 + 1, y2 + 1, widthResize, heightResize),
                            QRect(x1 + offsetX, y2 + offsetY, widthResize, resizeY), painter);
 

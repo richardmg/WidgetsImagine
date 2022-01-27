@@ -44,9 +44,6 @@ private:
     QImage m_image;
     QImage m_cachedImage;
 
-    int m_prevWidth = -1;
-    int m_prevHeight = -1;
-
     QVector<std::pair< int, int >> m_resizeDistancesX;
     QVector<std::pair< int, int >> m_resizeDistancesY;
 
