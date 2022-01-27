@@ -375,21 +375,6 @@ class QImagineStyle : public QProxyStyle
                 break;
             }
             break; }
-        case CC_Slider: {
-            switch (subControl) {
-//            case SC_SliderHandle:
-//                if (const auto *comboOption = qstyleoption_cast<const QStyleOptionComboBox *>(option)) {
-//                    const QString baseName = baseNameComboBoxIndicator(comboOption);
-//                    if (const auto imagineImage = resolveImage(baseName, comboOption)) {
-//                        const QRect frame = comboOption->rect;
-//                        const QSize indicatorSize = imagineImage->size();
-//                        return QRect(frame.width() - indicatorSize.width(), 0, indicatorSize.width(), indicatorSize.height());
-//                    }
-//                }
-            default:
-                break;
-            }
-            break; }
         default:
             break;
         }
