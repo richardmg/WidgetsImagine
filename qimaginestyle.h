@@ -253,8 +253,10 @@ class QImagineStyle : public QProxyStyle
                 }
                 if (subControls & SC_ComboBoxArrow) {
                     const QString baseName = baseNameComboBoxIndicator(comboOption);
-                    if (const auto imagineImage = resolveImage(baseName, comboOption))
-                        imagineImage->draw(painter, comboOption->rect);
+                    if (const auto imagineImage = resolveImage(baseName, comboOption)) {
+                        const QRect arrowRect = subControlRect(CC_ComboBox, comboOption, SC_ComboBoxArrow, widget);
+                        imagineImage->draw(painter, arrowRect);
+                    }
                 }
                 if (subControls & SC_ComboBoxEditField) {
 
@@ -309,8 +311,40 @@ class QImagineStyle : public QProxyStyle
         return QProxyStyle::sizeFromContents(type, option, size, widget);
     }
 
+// -----------------------------------------------------------------------
+
+    QRect subControlRect(
+            ComplexControl element,
+            const QStyleOptionComplex *option,
+            SubControl subControl,
+            const QWidget *widget) const override
+    {
+        switch (element) {
+        case CC_ComboBox: {
+            switch (subControl) {
+            case SC_ComboBoxArrow:
+                if (const auto *comboOption = qstyleoption_cast<const QStyleOptionComboBox *>(option)) {
+                    const QString baseName = baseNameComboBoxIndicator(comboOption);
+                    if (const auto imagineImage = resolveImage(baseName, comboOption)) {
+                        const QRect frame = comboOption->rect;
+                        const QSize indicatorSize = imagineImage->size();
+                        qDebug() << "returning:" << QRect(frame.width() - indicatorSize.width(), 0, indicatorSize.width(), indicatorSize.height());
+                        return QRect(frame.width() - indicatorSize.width(), 0, indicatorSize.width(), indicatorSize.height());
+                    }
+                }
+            default:
+                break;
+            }
+            break; }
+        default:
+            break;
+        }
+
+        return QProxyStyle::subControlRect(element, option, subControl, widget);
+    }
+
 private:
-    QMap<QString, QImagineStyleImage*> m_images;
+    QHash<QString, QImagineStyleImage*> m_images;
 };
 
 #endif // QIMAGINESTYLE_H
