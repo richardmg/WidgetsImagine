@@ -1,5 +1,6 @@
 #include "ninepatch.h"
 #include <QRect>
+#include <QDebug>
 
 QStyleNinePatchImage::QStyleNinePatchImage(const QImage &image)
     : m_image(image)
@@ -43,9 +44,9 @@ void QStyleNinePatchImage::setImageSize(int width, int height) {
     width = qMax(width, (m_image.width() - 2 - resizeWidth));
     height = qMax(height, (m_image.height() - 2 - resizeHeight));
 
-    if (width != OldWidth || height != OldHeight) {
-        OldWidth = width;
-        OldHeight = height;
+    if (width != m_prevWidth || height != m_prevHeight) {
+        m_prevWidth = width;
+        m_prevHeight = height;
         updateCachedImage(width, height);
     }
 }
@@ -79,69 +80,76 @@ void QStyleNinePatchImage::updateContentArea()
 {
     const int bottomLine = m_image.height() - 1;
     const int rightLine = m_image.width() - 1;
+    int left = 0, right = 0;
+    int top = 0, bottom = 0;
 
     // Find start and end pixel for the bottom line
-    int left = 0, right = 0;
     for (int x = 0; x < m_image.width(); x++) {
-        if (pixelsBlack(m_image.pixel(x, bottomLine))) {
-            if (left == 0)
-                left = x;
-            else
-                right = x;
+        if (!pixelsBlack(m_image.pixel(x, bottomLine)))
+            continue;
+
+        if (left == 0) {
+            left = x;
+            right = x;
+        } else {
+            right = x;
         }
     }
 
-    int top = 0, bottom = 0;
     for (int y = 0; y < m_image.height(); y++) {
-        if (pixelsBlack(m_image.pixel(rightLine, y))) {
-            if (top == 0)
-                top = y;
-            else
-                bottom = y;
+        if (!pixelsBlack(m_image.pixel(rightLine, y)))
+            continue;
+
+        if (top == 0) {
+            top = y;
+            bottom = y;
+        } else {
+            bottom = y;
         }
     }
 
-    if (right == 0)
-        right = left;
-    if (bottom == 0)
-        bottom = top;
-
-    left -= 1; // why do we do this?
-    top -= 1;
-
-    m_contentArea = QRect(left, top, right - left, bottom - top);
+    m_contentArea = QRect(left - 1, top - 1, right - left + 1, bottom - top + 1);
 }
 
 void QStyleNinePatchImage::updateResizeArea()
 {
     const int topLine = 0;
-    int left = 0;
+    const int leftLine = 0;
+    int left = 0, right = 0;
+    int top = 0, bottom = 0;
 
     for (int x = 0; x < m_image.width(); x++) {
-        if (pixelsBlack(m_image.pixel(x, topLine))) {
-            if (left == 0) {
-                left = x;
-            } else if (!pixelsBlack(m_image.pixel(x + 1, topLine))) {
-                m_resizeDistancesX.push_back(std::make_pair(left - 1, x - left));
-                left = 0;
-            }
+        if (!pixelsBlack(m_image.pixel(x, topLine)))
+            continue;
+
+        if (left == 0) {
+            left = x;
+            right = x;
+        } else {
+            right = x;
+        }
+
+        if (!pixelsBlack(m_image.pixel(x + 1, topLine))) {
+            m_resizeDistancesX.push_back(std::make_pair(left - 1, right - left + 1));
+            left = 0;
         }
     }
 
-    int i = 0;
-    int top = 0;
-    int bot = 0;
+    for (int y = 0; y < m_image.height(); y++) {
+        if (!pixelsBlack(m_image.pixel(leftLine, y)))
+            continue;
 
-    for (int j = 0; j < m_image.height(); j++) {
-        if (pixelsBlack(m_image.pixel(i, j)) && top == 0) {
-            top = j;
+        if (top == 0) {
+            top = y;
+            bottom = y;
+        } else {
+            bottom = y;
         }
-        if (top && pixelsBlack(m_image.pixel(i, j)) && !pixelsBlack(m_image.pixel(i, j+1))) {
-            bot = j;
-            top -= 1;
-            m_resizeDistancesY.push_back(std::make_pair(top, bot - top));
+
+        if (!pixelsBlack(m_image.pixel(topLine, y + 1))) {
+            // Store the current line segment, and continue to search for next
+            m_resizeDistancesY.push_back(std::make_pair(top - 1, bottom - top + 1));
             top = 0;
-            bot = 0;
         }
     }
 }
@@ -161,10 +169,17 @@ void QStyleNinePatchImage::getFactor(int width, int height, double& factorX, dou
     factorY = (double)leftResize / factorY;
 }
 
-void QStyleNinePatchImage::updateCachedImage(int width, int height) {
-    m_cachedImage =  QImage(width, height, QImage::Format_ARGB32_Premultiplied);
+void QStyleNinePatchImage::updateCachedImage(int width, int height)
+{
+    // TODO: Don't cache the image, just redraw it directly using the painter. Different widgets
+    // of the same type will usually have different size (when it's a 9p image). So caching should
+    // be unnecessary.
+
+    m_cachedImage = QImage(width, height, QImage::Format_ARGB32_Premultiplied);
     m_cachedImage.fill(QColor(0,0,0,0));
+
     QPainter painter(&m_cachedImage);
+
     double factorX = 0.0;
     double factorY = 0.0;
     getFactor(width, height, factorX, factorY);
@@ -178,7 +193,8 @@ void QStyleNinePatchImage::updateCachedImage(int width, int height) {
     int resizeY = 0;
     int offsetX = 0;
     int offsetY = 0;
-    for (int  i = 0; i < m_resizeDistancesX.size(); i++) {
+
+    for (int i = 0; i < m_resizeDistancesX.size(); i++) {
         y1 = 0;
         offsetY = 0;
         lostY = 0.0;

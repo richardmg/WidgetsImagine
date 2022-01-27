@@ -42,11 +42,14 @@ private:
 
 private:
     QImage m_image;
-    int OldWidth = -1;
-    int OldHeight = -1;
     QImage m_cachedImage;
-    QVector<std::pair< int, int >>m_resizeDistancesY;
-    QVector<std::pair< int, int >>m_resizeDistancesX;
+
+    int m_prevWidth = -1;
+    int m_prevHeight = -1;
+
+    QVector<std::pair< int, int >> m_resizeDistancesX;
+    QVector<std::pair< int, int >> m_resizeDistancesY;
+
     QRect m_contentArea;
 };
 
