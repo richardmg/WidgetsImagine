@@ -47,7 +47,7 @@ class QImagineStyle : public QProxyStyle
         qDeleteAll(m_images);
     }
 
-    QImagineStyleImage *resolveImage(const QString &baseName, const QStyleOption *option) const
+    QImagineStyleImage *resolveImage(const QString &baseName, const QStyleOption *option, bool debug = false) const
     {
         Q_UNUSED(option);
         // try with different endings, .9., @2x. etc, and append .png
@@ -253,8 +253,10 @@ class QImagineStyle : public QProxyStyle
                 if (const auto imagineImage = resolveImage(baseNameBackground, sliderOption)) {
                     imagineImage->draw(painter, sliderOption->rect);
                     const QString baseNameHandle = baseNameSliderHandle(sliderOption);
-                    if (const auto imagineImage = resolveImage(baseNameHandle, sliderOption))
-                        imagineImage->draw(painter, sliderOption->rect);
+                    if (const auto imagineImage = resolveImage(baseNameHandle, sliderOption)) {
+                        const QRect handleRect = proxy()->subControlRect(CC_Slider, sliderOption, SC_SliderHandle, widget);
+                        imagineImage->draw(painter, handleRect);
+                    }
                     return;
                 }
             }
@@ -358,6 +360,21 @@ class QImagineStyle : public QProxyStyle
                 break;
             }
             break; }
+        case CC_Slider: {
+            switch (subControl) {
+//            case SC_SliderHandle:
+//                if (const auto *comboOption = qstyleoption_cast<const QStyleOptionComboBox *>(option)) {
+//                    const QString baseName = baseNameComboBoxIndicator(comboOption);
+//                    if (const auto imagineImage = resolveImage(baseName, comboOption)) {
+//                        const QRect frame = comboOption->rect;
+//                        const QSize indicatorSize = imagineImage->size();
+//                        return QRect(frame.width() - indicatorSize.width(), 0, indicatorSize.width(), indicatorSize.height());
+//                    }
+//                }
+            default:
+                break;
+            }
+            break; }
         default:
             break;
         }
@@ -392,6 +409,25 @@ class QImagineStyle : public QProxyStyle
 
        return QProxyStyle::subElementRect(element, option, widget);
     }
+
+// -----------------------------------------------------------------------
+
+    int pixelMetric(
+            PixelMetric metric,
+            const QStyleOption *option = nullptr,
+            const QWidget *widget = nullptr) const override
+    {
+
+        switch (metric) {
+        default:
+            break;
+        }
+
+        return QProxyStyle::pixelMetric(metric, option, widget);
+
+    }
+
+// -----------------------------------------------------------------------
 
 private:
     QHash<QString, QImagineStyleImage*> m_images;
