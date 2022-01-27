@@ -53,12 +53,13 @@ class QImagineStyle : public QProxyStyle
 
         static const QString nine = QStringLiteral(".9");
         static const QString png = QStringLiteral(".png");
+        static const QString scale2x = QStringLiteral("@2x");
 
         // Works for now, but scale factor should really be depending on QPainter paint device dpr?
         QString scale;
         const int dpr = qApp->primaryScreen()->devicePixelRatio();
         if (dpr == 2)
-            scale = QStringLiteral("@2x");
+            scale = scale2x;
 
         QString fileName = baseName + scale + nine + png;
 //        qDebug() << "looking for:" << fileName;
