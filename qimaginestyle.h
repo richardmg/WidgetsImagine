@@ -309,6 +309,14 @@ class QImagineStyle : public QProxyStyle
             }
             break;
         }
+        case CT_ComboBox: {
+            if (const auto *comboOption = qstyleoption_cast<const QStyleOptionComboBox *>(option)) {
+                const QString baseName = baseNameComboBoxIndicator(comboOption);
+                if (const auto imagineImage = resolveImage(baseName, comboOption))
+                    return imagineImage->size();
+            }
+            break;
+        }
         default:
             break;
         }
@@ -333,7 +341,6 @@ class QImagineStyle : public QProxyStyle
                     if (const auto imagineImage = resolveImage(baseName, comboOption)) {
                         const QRect frame = comboOption->rect;
                         const QSize indicatorSize = imagineImage->size();
-                        qDebug() << "returning:" << QRect(frame.width() - indicatorSize.width(), 0, indicatorSize.width(), indicatorSize.height());
                         return QRect(frame.width() - indicatorSize.width(), 0, indicatorSize.width(), indicatorSize.height());
                     }
                 }
