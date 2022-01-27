@@ -89,8 +89,8 @@ class QImagineStyle : public QProxyStyle
                     QStyleOptionButton subopt = *buttonOption;
                     subopt.rect = subElementRect(SE_PushButtonContents, buttonOption, widget);
                     proxy()->drawControl(CE_PushButtonLabel, &subopt, painter, widget);
+                    return;
                 }
-                return;
             }
         case CE_CheckBox: {
             if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
@@ -99,8 +99,8 @@ class QImagineStyle : public QProxyStyle
                     QStyleOptionButton subopt = *buttonOption;
                     subopt.rect = subElementRect(SE_PushButtonContents, buttonOption, widget);
                     proxy()->drawControl(CE_PushButtonLabel, &subopt, painter, widget);
+                    return;
                 }
-                return;
             }
 
         }
