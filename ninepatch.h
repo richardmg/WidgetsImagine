@@ -59,53 +59,6 @@ public:
     mutable std::string m_str;
 };
 
-class ExceptionIncorrectWidth : public NinePatchException {
-public:
-    ExceptionIncorrectWidth(int  imgW, int  imgH) {
-        ImgWidth = imgW;
-        ImgHeight = imgH;
-    }
-    virtual const char* what() const throw() override {
-        m_str = std::string("Input incorrect width. Mimimum width = ") + std::to_string(ImgWidth);
-        return m_str.c_str();
-    }
-public:
-    int  ImgWidth;
-    int  ImgHeight;
-};
-
-class ExceptionIncorrectWidthAndHeight : public NinePatchException {
-public:
-    ExceptionIncorrectWidthAndHeight(int  imgW,int  imgH) {
-        ImgWidth = imgW;
-        ImgHeight = imgH;
-    }
-
-    virtual const char* what() const throw() override {
-        m_str = std::string("Input incorrect width width and height. Minimum width = ") + std::to_string(ImgWidth) + ". Minimum height = " + std::to_string(ImgHeight);
-        return m_str.c_str();
-    }
-public:
-    int  ImgWidth;
-    int  ImgHeight;
-};
-
-class ExceptionIncorrectHeight : public NinePatchException {
-public:
-    ExceptionIncorrectHeight(int  imgW, int  imgH) {
-        ImgWidth = imgW;
-        ImgHeight = imgH;
-    }
-
-    virtual const char* what() const throw() override {
-        m_str = std::string("Input incorrect heigh. Minimum height = ") + std::to_string(ImgHeight);
-        return m_str.c_str();
-    }
-public:
-    int  ImgWidth;
-    int  ImgHeight;
-};
-
 class ExceptionNot9Patch : public NinePatchException {
     virtual const char* what() const throw() override {
         return "It is not nine patch image";

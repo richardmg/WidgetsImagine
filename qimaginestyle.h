@@ -260,7 +260,7 @@ class QImagineStyle : public QProxyStyle
                     imagineImage->draw(painter, sliderOption->rect);
 
                     const QString baseNameProgress = baseNameSliderProgress(sliderOption);
-                    if (const auto imagineImage = resolveImage(baseNameProgress, sliderOption, true)) {
+                    if (const auto imagineImage = resolveImage(baseNameProgress, sliderOption)) {
                         QRect progressRect = proxy()->subControlRect(CC_Slider, sliderOption, SC_SliderGroove, widget);
                         const qreal scale = sliderOption->sliderValue / qMax(0.001, qreal(sliderOption->maximum - sliderOption->minimum));
                         progressRect.setWidth(progressRect.width() * scale);

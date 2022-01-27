@@ -31,21 +31,18 @@ QSize QStyleNinePatchImage::size() const
 void QStyleNinePatchImage::SetImageSize(int width, int height) {
     int resizeWidth = 0;
     int resizeHeight = 0;
+
     for (int i = 0; i < ResizeDistancesX.size(); i++) {
           resizeWidth += ResizeDistancesX[i].second;
     }
+
     for (int i = 0; i < ResizeDistancesY.size(); i++) {
           resizeHeight += ResizeDistancesY[i].second;
     }
-    if (width < (m_image.width() - 2 - resizeWidth) && height < (m_image.height() - 2 - resizeHeight)) {
-        throw new ExceptionIncorrectWidthAndHeight(m_image.width() - 2 , m_image.height() - 2 );
-    }
-    if (width < (m_image.width() - 2 - resizeWidth)) {
-          throw new ExceptionIncorrectWidth(m_image.width() - 2 , m_image.height() - 2 );
-    }
-     if (height < (m_image.height() - 2 - resizeHeight)) {
-         throw new ExceptionIncorrectHeight(m_image.width() - 2 , m_image.height() - 2 );
-    }
+
+    width = qMax(width, (m_image.width() - 2 - resizeWidth));
+    height = qMax(height, (m_image.height() - 2 - resizeHeight));
+
     if (width != OldWidth || height != OldHeight) {
         OldWidth = width;
         OldHeight = height;
