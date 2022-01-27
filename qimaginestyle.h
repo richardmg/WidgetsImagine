@@ -57,7 +57,7 @@ class QImagineStyle : public QProxyStyle
 
         // Works for now, but scale factor should really be depending on QPainter paint device dpr?
         QString scale;
-        const int dpr = qApp->primaryScreen()->devicePixelRatio();
+        const int dpr = 1.0;//qApp->primaryScreen()->devicePixelRatio();
         if (dpr == 2)
             scale = scale2x;
 
@@ -84,6 +84,24 @@ class QImagineStyle : public QProxyStyle
         if (option->state & QStyle::State_On)
             fileName += QStringLiteral("-checked");
         else if (option->state & QStyle::State_Sunken)
+            fileName += QLatin1String("-pressed");
+        return fileName;
+    }
+
+    QString baseNameSliderBackground(const QStyleOptionSlider *option) const
+    {
+        QString fileName = QStringLiteral(":/images/slider-background");
+        if (option->state & QStyle::State_Horizontal)
+            fileName += QStringLiteral("-horizontal");
+        if (option->state & QStyle::State_On)
+            fileName += QStringLiteral("-checked");
+        return fileName;
+    }
+
+    QString baseNameSliderHandle(const QStyleOptionSlider *option) const
+    {
+        QString fileName = QStringLiteral(":/images/slider-handle");
+        if (option->state & QStyle::State_Sunken)
             fileName += QLatin1String("-pressed");
         return fileName;
     }
@@ -147,6 +165,31 @@ class QImagineStyle : public QProxyStyle
         QProxyStyle::drawControl(element, option, painter, widget);
     }
 
+    void drawComplexControl(
+            ComplexControl element,
+            const QStyleOptionComplex *option,
+            QPainter *painter,
+            const QWidget *widget) const override
+    {
+        switch (element) {
+        case CC_Slider:
+            if (const auto *sliderOption = qstyleoption_cast<const QStyleOptionSlider *>(option)) {
+                const QString baseNameBackground = baseNameSliderBackground(sliderOption);
+                if (const auto imagineImage = resolveImage(baseNameBackground, sliderOption)) {
+                    imagineImage->draw(painter, sliderOption->rect);
+                    const QString baseNameHandle = baseNameSliderHandle(sliderOption);
+                    if (const auto imagineImage = resolveImage(baseNameHandle, sliderOption))
+                        imagineImage->draw(painter, sliderOption->rect);
+                    return;
+                }
+            }
+        default:
+            break;
+        }
+
+        QProxyStyle::drawComplexControl(element, option, painter, widget);
+    }
+
 // -----------------------------------------------------------------------
 
     QSize sizeFromContents(
@@ -157,7 +200,7 @@ class QImagineStyle : public QProxyStyle
     {
         switch (type)  {
         case CT_PushButton: {
-            if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
+            if (const auto *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
                 const QString baseName = baseNameButton(QStringLiteral("button-background"), buttonOption);
                 if (const auto imagineImage = resolveImage(baseName, buttonOption))
                     return imagineImage->size();
@@ -165,7 +208,7 @@ class QImagineStyle : public QProxyStyle
             break;
         }
         case CT_CheckBox: {
-            if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
+            if (const auto *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
                 const QString baseName = baseNameButton(QStringLiteral("checkbox-indicator"), buttonOption);
                 if (const auto imagineImage = resolveImage(baseName, buttonOption))
                     return imagineImage->size();
@@ -173,7 +216,7 @@ class QImagineStyle : public QProxyStyle
             break;
         }
         case CT_RadioButton: {
-            if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
+            if (const auto *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
                 const QString baseName = baseNameButton(QStringLiteral("radiobutton-indicator"), buttonOption);
                 if (const auto imagineImage = resolveImage(baseName, buttonOption))
                     return imagineImage->size();
