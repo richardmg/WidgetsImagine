@@ -4,9 +4,9 @@
 QStyleNinePatchImage::QStyleNinePatchImage(const QImage &image)
     : m_image(image)
 {
-    ContentArea = getContentArea();
+    m_contentArea = getContentArea();
     getResizeArea();
-    if (!ResizeDistancesX.size() || !ResizeDistancesY.size()) {
+    if (!m_resizeDistancesX.size() || !m_resizeDistancesY.size()) {
         throw new ExceptionNot9Patch;
     }
 }
@@ -20,7 +20,7 @@ void QStyleNinePatchImage::draw(QPainter *painter, const QRect &targetRect) cons
     const QPoint pos = targetRect.topLeft();
     const QSize size = targetRect.size();
     const_cast<QStyleNinePatchImage *>(this)->setImageSize(size.width(), size.height());
-    painter->drawImage(pos.x(), pos.y(), CachedImage);
+    painter->drawImage(pos.x(), pos.y(), m_cachedImage);
 }
 
 QSize QStyleNinePatchImage::size() const
@@ -32,12 +32,12 @@ void QStyleNinePatchImage::setImageSize(int width, int height) {
     int resizeWidth = 0;
     int resizeHeight = 0;
 
-    for (int i = 0; i < ResizeDistancesX.size(); i++) {
-          resizeWidth += ResizeDistancesX[i].second;
+    for (int i = 0; i < m_resizeDistancesX.size(); i++) {
+          resizeWidth += m_resizeDistancesX[i].second;
     }
 
-    for (int i = 0; i < ResizeDistancesY.size(); i++) {
-          resizeHeight += ResizeDistancesY[i].second;
+    for (int i = 0; i < m_resizeDistancesY.size(); i++) {
+          resizeHeight += m_resizeDistancesY[i].second;
     }
 
     width = qMax(width, (m_image.width() - 2 - resizeWidth));
@@ -51,8 +51,8 @@ void QStyleNinePatchImage::setImageSize(int width, int height) {
 }
 
 QRect QStyleNinePatchImage::getContentArea(int  width, int  height) {
-    return (QRect(ContentArea.x(), ContentArea.y(), (width - (m_image.width() - 2 -ContentArea.width())),
-                  (height - (m_image.height() - 2 -ContentArea.height()))));
+    return (QRect(m_contentArea.x(), m_contentArea.y(), (width - (m_image.width() - 2 -m_contentArea.width())),
+                  (height - (m_image.height() - 2 -m_contentArea.height()))));
 }
 
 void QStyleNinePatchImage::drawScaledPart(QRect oldRect, QRect newRect, QPainter& painter) {
@@ -126,7 +126,7 @@ void QStyleNinePatchImage::getResizeArea() {
         if (left && IsColorBlack(m_image.pixel(i, j)) && !IsColorBlack(m_image.pixel(i+1, j))) {
             right = i;
             left -= 1;
-            ResizeDistancesX.push_back(std::make_pair(left, right - left));
+            m_resizeDistancesX.push_back(std::make_pair(left, right - left));
             right = 0;
             left = 0;
         }
@@ -141,7 +141,7 @@ void QStyleNinePatchImage::getResizeArea() {
         if (top && IsColorBlack(m_image.pixel(i, j)) && !IsColorBlack(m_image.pixel(i, j+1))) {
             bot = j;
             top -= 1;
-            ResizeDistancesY.push_back(std::make_pair(top, bot - top));
+            m_resizeDistancesY.push_back(std::make_pair(top, bot - top));
             top = 0;
             bot = 0;
         }
@@ -151,22 +151,22 @@ void QStyleNinePatchImage::getResizeArea() {
 void QStyleNinePatchImage::getFactor(int width, int height, double& factorX, double& factorY) {
     int topResize = width - (m_image.width() - 2);
     int leftResize = height - (m_image.height() - 2);
-    for (int i = 0; i < ResizeDistancesX.size(); i++) {
-        topResize += ResizeDistancesX[i].second;
-        factorX += ResizeDistancesX[i].second;
+    for (int i = 0; i < m_resizeDistancesX.size(); i++) {
+        topResize += m_resizeDistancesX[i].second;
+        factorX += m_resizeDistancesX[i].second;
     }
-    for (int i = 0; i < ResizeDistancesY.size(); i++) {
-        leftResize += ResizeDistancesY[i].second;
-        factorY += ResizeDistancesY[i].second;
+    for (int i = 0; i < m_resizeDistancesY.size(); i++) {
+        leftResize += m_resizeDistancesY[i].second;
+        factorY += m_resizeDistancesY[i].second;
     }
     factorX = (double)topResize / factorX;
     factorY = (double)leftResize / factorY;
 }
 
 void QStyleNinePatchImage::updateCachedImage(int width, int height) {
-    CachedImage =  QImage(width, height, QImage::Format_ARGB32_Premultiplied);
-    CachedImage.fill(QColor(0,0,0,0));
-    QPainter painter(&CachedImage);
+    m_cachedImage =  QImage(width, height, QImage::Format_ARGB32_Premultiplied);
+    m_cachedImage.fill(QColor(0,0,0,0));
+    QPainter painter(&m_cachedImage);
     double factorX = 0.0;
     double factorY = 0.0;
     getFactor(width, height, factorX, factorY);
@@ -180,19 +180,19 @@ void QStyleNinePatchImage::updateCachedImage(int width, int height) {
     int resizeY = 0;
     int offsetX = 0;
     int offsetY = 0;
-    for (int  i = 0; i < ResizeDistancesX.size(); i++) {
+    for (int  i = 0; i < m_resizeDistancesX.size(); i++) {
         y1 = 0;
         offsetY = 0;
         lostY = 0.0;
-        for (int  j = 0; j < ResizeDistancesY.size(); j++) {
-            widthResize = ResizeDistancesX[i].first - x1;
-            heightResize = ResizeDistancesY[j].first - y1;
+        for (int  j = 0; j < m_resizeDistancesY.size(); j++) {
+            widthResize = m_resizeDistancesX[i].first - x1;
+            heightResize = m_resizeDistancesY[j].first - y1;
 
             drawConstPart(QRect(x1 + 1, y1 + 1, widthResize, heightResize),
                           QRect(x1 + offsetX, y1 + offsetY, widthResize, heightResize), painter);
 
-            int  y2 = ResizeDistancesY[j].first;
-            heightResize = ResizeDistancesY[j].second;
+            int  y2 = m_resizeDistancesY[j].first;
+            heightResize = m_resizeDistancesY[j].second;
             resizeY = round((double)heightResize * factorY);
             lostY += resizeY - ((double)heightResize * factorY);
             if (fabs(lostY) >= 1.0) {
@@ -207,9 +207,9 @@ void QStyleNinePatchImage::updateCachedImage(int width, int height) {
             drawScaledPart(QRect(x1 + 1, y2 + 1, widthResize, heightResize),
                            QRect(x1 + offsetX, y2 + offsetY, widthResize, resizeY), painter);
 
-            int  x2 = ResizeDistancesX[i].first;
-            widthResize = ResizeDistancesX[i].second;
-            heightResize = ResizeDistancesY[j].first - y1;
+            int  x2 = m_resizeDistancesX[i].first;
+            widthResize = m_resizeDistancesX[i].second;
+            heightResize = m_resizeDistancesY[j].first - y1;
             resizeX = round((double)widthResize * factorX);
             lostX += resizeX - ((double)widthResize * factorX);
             if (fabs(lostX) >= 1.0) {
@@ -224,28 +224,28 @@ void QStyleNinePatchImage::updateCachedImage(int width, int height) {
             drawScaledPart(QRect(x2 + 1, y1 + 1, widthResize, heightResize),
                            QRect(x2 + offsetX, y1 + offsetY, resizeX, heightResize), painter);
 
-            heightResize = ResizeDistancesY[j].second;
+            heightResize = m_resizeDistancesY[j].second;
             drawScaledPart(QRect(x2 + 1, y2 + 1, widthResize, heightResize),
                            QRect(x2 + offsetX, y2 + offsetY, resizeX, resizeY), painter);
 
-            y1 = ResizeDistancesY[j].first + ResizeDistancesY[j].second;
-            offsetY += resizeY - ResizeDistancesY[j].second;
+            y1 = m_resizeDistancesY[j].first + m_resizeDistancesY[j].second;
+            offsetY += resizeY - m_resizeDistancesY[j].second;
         }
-        x1 = ResizeDistancesX[i].first + ResizeDistancesX[i].second;
-        offsetX += resizeX - ResizeDistancesX[i].second;
+        x1 = m_resizeDistancesX[i].first + m_resizeDistancesX[i].second;
+        offsetX += resizeX - m_resizeDistancesX[i].second;
     }
-    x1 = ResizeDistancesX[ResizeDistancesX.size() - 1].first + ResizeDistancesX[ResizeDistancesX.size() - 1].second;
+    x1 = m_resizeDistancesX[m_resizeDistancesX.size() - 1].first + m_resizeDistancesX[m_resizeDistancesX.size() - 1].second;
     widthResize = m_image.width() - x1 - 2;
     y1 = 0;
     lostX = 0.0;
     lostY = 0.0;
     offsetY = 0;
-    for (int i = 0; i < ResizeDistancesY.size(); i++) {
-        drawConstPart(QRect(x1 + 1, y1 + 1, widthResize, ResizeDistancesY[i].first - y1),
-                      QRect(x1 + offsetX, y1 + offsetY, widthResize, ResizeDistancesY[i].first - y1), painter);
-        y1 = ResizeDistancesY[i].first;
-        resizeY = round((double)ResizeDistancesY[i].second * factorY);
-        lostY += resizeY - ((double)ResizeDistancesY[i].second * factorY);
+    for (int i = 0; i < m_resizeDistancesY.size(); i++) {
+        drawConstPart(QRect(x1 + 1, y1 + 1, widthResize, m_resizeDistancesY[i].first - y1),
+                      QRect(x1 + offsetX, y1 + offsetY, widthResize, m_resizeDistancesY[i].first - y1), painter);
+        y1 = m_resizeDistancesY[i].first;
+        resizeY = round((double)m_resizeDistancesY[i].second * factorY);
+        lostY += resizeY - ((double)m_resizeDistancesY[i].second * factorY);
         if (fabs(lostY) >= 1.0) {
             if (lostY < 0) {
                 resizeY += 1;
@@ -255,21 +255,21 @@ void QStyleNinePatchImage::updateCachedImage(int width, int height) {
                 lostY -= 1.0;
             }
         }
-        drawScaledPart(QRect(x1 + 1, y1 + 1, widthResize, ResizeDistancesY[i].second),
+        drawScaledPart(QRect(x1 + 1, y1 + 1, widthResize, m_resizeDistancesY[i].second),
                        QRect(x1 + offsetX, y1 + offsetY, widthResize, resizeY), painter);
-        y1 = ResizeDistancesY[i].first + ResizeDistancesY[i].second;
-        offsetY += resizeY - ResizeDistancesY[i].second;
+        y1 = m_resizeDistancesY[i].first + m_resizeDistancesY[i].second;
+        offsetY += resizeY - m_resizeDistancesY[i].second;
     }
-    y1 = ResizeDistancesY[ResizeDistancesY.size() - 1].first + ResizeDistancesY[ResizeDistancesY.size() - 1].second;
+    y1 = m_resizeDistancesY[m_resizeDistancesY.size() - 1].first + m_resizeDistancesY[m_resizeDistancesY.size() - 1].second;
     heightResize = m_image.height() - y1 - 2;
     x1 = 0;
     offsetX = 0;
-    for (int i = 0; i < ResizeDistancesX.size(); i++) {
-        drawConstPart(QRect(x1 + 1, y1 + 1, ResizeDistancesX[i].first - x1, heightResize),
-                      QRect(x1 + offsetX, y1 + offsetY, ResizeDistancesX[i].first - x1, heightResize), painter);
-        x1 = ResizeDistancesX[i].first;
-        resizeX = round((double)ResizeDistancesX[i].second * factorX);
-        lostX += resizeX - ((double)ResizeDistancesX[i].second * factorX);
+    for (int i = 0; i < m_resizeDistancesX.size(); i++) {
+        drawConstPart(QRect(x1 + 1, y1 + 1, m_resizeDistancesX[i].first - x1, heightResize),
+                      QRect(x1 + offsetX, y1 + offsetY, m_resizeDistancesX[i].first - x1, heightResize), painter);
+        x1 = m_resizeDistancesX[i].first;
+        resizeX = round((double)m_resizeDistancesX[i].second * factorX);
+        lostX += resizeX - ((double)m_resizeDistancesX[i].second * factorX);
         if (fabs(lostX) >= 1.0) {
             if (lostX < 0) {
                 resizeX += 1;
@@ -279,20 +279,18 @@ void QStyleNinePatchImage::updateCachedImage(int width, int height) {
                 lostX += 1.0;
             }
         }
-        drawScaledPart(QRect(x1 + 1, y1 + 1, ResizeDistancesX[i].second, heightResize),
+        drawScaledPart(QRect(x1 + 1, y1 + 1, m_resizeDistancesX[i].second, heightResize),
                        QRect(x1 + offsetX, y1 + offsetY, resizeX, heightResize), painter);
-        x1 = ResizeDistancesX[i].first + ResizeDistancesX[i].second;
-        offsetX += resizeX - ResizeDistancesX[i].second;
+        x1 = m_resizeDistancesX[i].first + m_resizeDistancesX[i].second;
+        offsetX += resizeX - m_resizeDistancesX[i].second;
     }
-    x1 = ResizeDistancesX[ResizeDistancesX.size() - 1].first + ResizeDistancesX[ResizeDistancesX.size() - 1].second;
+    x1 = m_resizeDistancesX[m_resizeDistancesX.size() - 1].first + m_resizeDistancesX[m_resizeDistancesX.size() - 1].second;
     widthResize = m_image.width() - x1 - 2;
-    y1 = ResizeDistancesY[ResizeDistancesY.size() - 1].first + ResizeDistancesY[ResizeDistancesY.size() - 1].second;
+    y1 = m_resizeDistancesY[m_resizeDistancesY.size() - 1].first + m_resizeDistancesY[m_resizeDistancesY.size() - 1].second;
     heightResize = m_image.height() - y1 - 2;
     drawConstPart(QRect(x1 + 1, y1 + 1, widthResize, heightResize),
                   QRect(x1 + offsetX, y1 + offsetY, widthResize, heightResize), painter);
 }
-
-
 
 QImagineStyleFixedImage::QImagineStyleFixedImage(const QPixmap &pixmap)
     : QImagineStyleImage()

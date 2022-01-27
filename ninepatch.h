@@ -45,10 +45,10 @@ private:
     QImage m_image;
     int OldWidth = -1;
     int OldHeight = -1;
-    QImage CachedImage;
-    QVector<std::pair< int, int >>ResizeDistancesY;
-    QVector<std::pair< int, int >>ResizeDistancesX;
-    QRect ContentArea;
+    QImage m_cachedImage;
+    QVector<std::pair< int, int >>m_resizeDistancesY;
+    QVector<std::pair< int, int >>m_resizeDistancesX;
+    QRect m_contentArea;
 };
 
 class NinePatchException : public std::exception {
