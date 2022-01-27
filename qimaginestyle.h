@@ -63,18 +63,28 @@ class QImagineStyle : public QProxyStyle
             scale = scale2x;
 
         QString fileName = baseName + scale + nine + png;
-//        qDebug() << "looking for:" << fileName;
+        if (debug)
+            qDebug() << "trying:" << fileName;
         if (const auto imagineImage = m_images[fileName])
             return imagineImage;
 
         fileName = baseName + scale + png;
-//        qDebug() << "looking for:" << fileName;
+        if (debug)
+            qDebug() << "trying:" << fileName;
         if (const auto imagineImage = m_images[fileName])
             return imagineImage;
 
-        qWarning() << "Could not find image:" << baseName;
+        if (debug)
+            qDebug() << "no image found:" << baseName;
 
         return nullptr;
+    }
+
+    // -----------------------------------------------------------------------
+
+    void polish(QPalette &palette) override
+    {
+        palette.setColor(QPalette::Window, Qt::white);
     }
 
     // -----------------------------------------------------------------------
