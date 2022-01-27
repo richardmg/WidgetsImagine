@@ -1,6 +1,8 @@
 #ifndef QIMAGINESTYLE_H
 #define QIMAGINESTYLE_H
 
+#include <QApplication>
+#include <QScreen>
 #include <QProxyStyle>
 #include <QDirIterator>
 #include <QStyleOption>
@@ -44,11 +46,19 @@ class QImagineStyle : public QProxyStyle
         static const QString nine = QStringLiteral(".9");
         static const QString png = QStringLiteral(".png");
 
-        QString fileName = baseName + nine + png;
+        // Works for now, but scale factor should really be depending on QPainter paint device dpr?
+        QString scale;
+        const int dpr = qApp->primaryScreen()->devicePixelRatio();
+        if (dpr == 2)
+            scale = QStringLiteral("@2x");
+
+        QString fileName = baseName + scale + nine + png;
+//        qDebug() << "looking for:" << fileName;
         if (const auto imagineImage = m_images[fileName])
             return imagineImage;
 
-        fileName = baseName + png;
+        fileName = baseName + scale + png;
+//        qDebug() << "looking for:" << fileName;
         if (const auto imagineImage = m_images[fileName])
             return imagineImage;
 
