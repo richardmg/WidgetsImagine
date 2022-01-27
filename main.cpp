@@ -77,9 +77,36 @@ class QImagineStyle : public QProxyStyle
         return fileName;
     }
 
-    // -----------------------------------------------------------------------
+// -----------------------------------------------------------------------
 
-    void drawControl(QStyle::ControlElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget = nullptr) const override
+    void drawPrimitive(
+            PrimitiveElement element,
+            const QStyleOption *option,
+            QPainter *painter,
+            const QWidget *widget = nullptr) const override
+    {
+        switch (element) {
+        case PE_IndicatorCheckBox:
+            if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
+                if (const auto imagineImage = resolveImage(baseNameCheckBox(buttonOption), buttonOption)) {
+                    imagineImage->draw(painter, buttonOption->rect);
+                    return;
+                }
+            }
+        default:
+            break;
+        }
+
+        QProxyStyle::drawPrimitive(element, option, painter, widget);
+    }
+
+// -----------------------------------------------------------------------
+
+    void drawControl(
+            QStyle::ControlElement element,
+            const QStyleOption *option,
+            QPainter *painter,
+            const QWidget *widget = nullptr) const override
     {
         switch (element) {
         case CE_PushButton: {
@@ -94,25 +121,10 @@ class QImagineStyle : public QProxyStyle
                     return;
                 }
             }
-        case CE_PushButtonLabel:
-            if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
-                QStyleOptionButton subopt = *buttonOption;
-                subopt.rect = subElementRect(SE_PushButtonContents, buttonOption, widget);
-                QProxyStyle::drawControl(CE_PushButtonLabel, &subopt, painter, widget);
-                return;
-            }
         case CE_CheckBox:
             if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
-                if (const auto imagineImage = resolveImage(baseNameCheckBox(buttonOption), buttonOption)) {
-                    imagineImage->draw(painter, buttonOption->rect);
-                    return;
-                }
-            }
-        case CE_CheckBoxLabel:
-            if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
-                QStyleOptionButton subopt = *buttonOption;
-                subopt.rect = subElementRect(SE_PushButtonContents, buttonOption, widget);
-                QProxyStyle::drawControl(CE_PushButtonLabel, &subopt, painter, widget);
+                drawPrimitive(PE_IndicatorCheckBox, option, painter, widget);
+                drawControl(CE_CheckBoxLabel, buttonOption, painter, widget);
                 return;
             }
         case CE_FocusFrame:
@@ -122,11 +134,16 @@ class QImagineStyle : public QProxyStyle
             break;
         }
 
-        qDebug() << "fall back:" << element;
         QProxyStyle::drawControl(element, option, painter, widget);
     }
 
-    QSize sizeFromContents(QStyle::ContentsType type, const QStyleOption *option, const QSize &size, const QWidget *widget) const override
+// -----------------------------------------------------------------------
+
+    QSize sizeFromContents(
+            QStyle::ContentsType type,
+            const QStyleOption *option,
+            const QSize &size,
+            const QWidget *widget) const override
     {
         switch (type)  {
         case CT_PushButton: {
