@@ -14,7 +14,7 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>40</x>
@@ -135,12 +135,12 @@
      <rect>
       <x>192</x>
       <y>87</y>
-      <width>80</width>
-      <height>24</height>
+      <width>81</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="text">
-     <string>PushButton</string>
+     <string>Toggable</string>
     </property>
     <property name="checkable">
      <bool>true</bool>
