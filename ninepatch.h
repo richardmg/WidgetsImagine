@@ -56,6 +56,7 @@ public:
     virtual const char* what() const throw() override {
         return "Nine patch error";
     }
+    mutable std::string m_str;
 };
 
 class ExceptionIncorrectWidth : public NinePatchException {
@@ -65,8 +66,8 @@ public:
         ImgHeight = imgH;
     }
     virtual const char* what() const throw() override {
-        std::string str = ("Input incorrect width. Mimimum width = " + std::to_string(ImgWidth));
-        return str.c_str();
+        m_str = std::string("Input incorrect width. Mimimum width = ") + std::to_string(ImgWidth);
+        return m_str.c_str();
     }
 public:
     int  ImgWidth;
@@ -81,8 +82,8 @@ public:
     }
 
     virtual const char* what() const throw() override {
-        std::string str = ("Input incorrect width width and height. Minimum width = " + std::to_string(ImgWidth)+ ". Minimum height = " + std::to_string(ImgHeight));
-        return str.c_str();
+        m_str = std::string("Input incorrect width width and height. Minimum width = ") + std::to_string(ImgWidth) + ". Minimum height = " + std::to_string(ImgHeight);
+        return m_str.c_str();
     }
 public:
     int  ImgWidth;
@@ -97,8 +98,8 @@ public:
     }
 
     virtual const char* what() const throw() override {
-        std::string str = ("Input incorrect heigh. Minimum height = " + std::to_string(ImgHeight)) ;
-        return str.c_str();
+        m_str = std::string("Input incorrect heigh. Minimum height = ") + std::to_string(ImgHeight);
+        return m_str.c_str();
     }
 public:
     int  ImgWidth;
