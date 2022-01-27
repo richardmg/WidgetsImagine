@@ -27,7 +27,7 @@ void QStyleNinePatchImage::draw(QPainter *painter, const QRect &targetRect) cons
 
 QSize QStyleNinePatchImage::size() const
 {
-    return m_image.size();
+    return m_image.size() / m_image.devicePixelRatio();
 }
 
 void QStyleNinePatchImage::setImageSize(int width, int height)
@@ -330,5 +330,5 @@ void QImagineStyleFixedImage::draw(QPainter *painter, const QRect &targetRect) c
 
 QSize QImagineStyleFixedImage::size() const
 {
-    return m_pixmap.size();
+    return m_pixmap.size() / m_pixmap.devicePixelRatio();
 }
