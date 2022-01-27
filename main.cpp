@@ -52,24 +52,16 @@ class QImagineStyle : public QProxyStyle
         if (const auto imagineImage = m_images[fileName])
             return imagineImage;
 
+        qWarning() << "Could not find image:" << baseName;
+
         return nullptr;
     }
 
     // -----------------------------------------------------------------------
 
-    QString baseNameButton(const QStyleOptionButton *option) const
+    QString baseNameButton(const QString &subType, const QStyleOptionButton *option) const
     {
-        QString fileName = QStringLiteral(":/images/%1").arg(QStringLiteral("button-background"));
-        if (option->state & QStyle::State_On)
-            fileName += QStringLiteral("-checked");
-        if (option->state & QStyle::State_Sunken)
-            fileName += QLatin1String("-pressed");
-        return fileName;
-    }
-
-    QString baseNameCheckBox(const QStyleOptionButton *option) const
-    {
-        QString fileName = QStringLiteral(":/images/%1").arg(QStringLiteral("checkbox-indicator"));
+        QString fileName = QStringLiteral(":/images/%1").arg(subType);
         if (option->state & QStyle::State_On)
             fileName += QStringLiteral("-checked");
         if (option->state & QStyle::State_Sunken)
@@ -88,7 +80,16 @@ class QImagineStyle : public QProxyStyle
         switch (element) {
         case PE_IndicatorCheckBox:
             if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
-                if (const auto imagineImage = resolveImage(baseNameCheckBox(buttonOption), buttonOption)) {
+                const QString baseName = baseNameButton(QStringLiteral("checkbox-indicator"), buttonOption);
+                if (const auto imagineImage = resolveImage(baseName, buttonOption)) {
+                    imagineImage->draw(painter, buttonOption->rect);
+                    return;
+                }
+            }
+        case PE_IndicatorRadioButton:
+            if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
+                const QString baseName = baseNameButton(QStringLiteral("radiobutton-indicator"), buttonOption);
+                if (const auto imagineImage = resolveImage(baseName, buttonOption)) {
                     imagineImage->draw(painter, buttonOption->rect);
                     return;
                 }
@@ -111,7 +112,8 @@ class QImagineStyle : public QProxyStyle
         switch (element) {
         case CE_PushButtonBevel:
             if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
-                if (const auto imagineImage = resolveImage(baseNameButton(buttonOption), buttonOption)) {
+                const QString baseName = baseNameButton(QStringLiteral("button-background"), buttonOption);
+                if (const auto imagineImage = resolveImage(baseName, buttonOption)) {
                     imagineImage->draw(painter, buttonOption->rect);
                     return;
                 }
@@ -137,9 +139,19 @@ class QImagineStyle : public QProxyStyle
         switch (type)  {
         case CT_PushButton: {
             if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
-                if (const auto imagineImage = resolveImage(baseNameButton(buttonOption), buttonOption))
+                const QString baseName = baseNameButton(QStringLiteral("button-background"), buttonOption);
+                if (const auto imagineImage = resolveImage(baseName, buttonOption))
                     return imagineImage->size();
             }
+            break;
+        }
+        case CT_CheckBox: {
+            if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
+                const QString baseName = baseNameButton(QStringLiteral("checkbox-indicator"), buttonOption);
+                if (const auto imagineImage = resolveImage(baseName, buttonOption))
+                    return imagineImage->size();
+            }
+            break;
         }
         default:
             break;
