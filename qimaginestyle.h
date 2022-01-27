@@ -355,6 +355,34 @@ class QImagineStyle : public QProxyStyle
         return QProxyStyle::subControlRect(element, option, subControl, widget);
     }
 
+// -----------------------------------------------------------------------
+
+    QRect subElementRect(
+            QStyle::SubElement element,
+            const QStyleOption *option,
+            const QWidget *widget = nullptr) const override
+    {
+       switch (element) {
+       case SE_RadioButtonIndicator:
+           return QRect(0, 0, 40, 20);
+           break;
+       case SE_RadioButtonContents:
+           return QRect(0, 0, 40, 20);
+           break;
+       case SE_RadioButtonFocusRect:
+           return QRect(0, 0, 40, 20);
+           break;
+//       case SE_RadioButtonLayoutItem:
+//           qDebug() << QProxyStyle::subElementRect(element, option, widget);
+//           return QRect(2, 2, 2000, 2000);
+//           break;
+       default:
+           break;
+       }
+
+       return QProxyStyle::subElementRect(element, option, widget);
+    }
+
 private:
     QHash<QString, QImagineStyleImage*> m_images;
 };
