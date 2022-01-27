@@ -64,7 +64,7 @@ class QImagineStyle : public QProxyStyle
         QString fileName = QStringLiteral(":/images/%1").arg(subType);
         if (option->state & QStyle::State_On)
             fileName += QStringLiteral("-checked");
-        if (option->state & QStyle::State_Sunken)
+        else if (option->state & QStyle::State_Sunken)
             fileName += QLatin1String("-pressed");
         return fileName;
     }
