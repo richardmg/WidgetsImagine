@@ -7,6 +7,7 @@
 #include <QDirIterator>
 #include <QStyleOption>
 #include <QPainter>
+#include <QComboBox>
 
 #include "ninepatch.h"
 
@@ -168,6 +169,10 @@ class QImagineStyle : public QProxyStyle
             break;
         case PE_PanelLineEdit:
             if (const QStyleOptionFrame *frameOption = qstyleoption_cast<const QStyleOptionFrame *>(option)) {
+                if (qobject_cast<QComboBox *>(widget->parentWidget())) {
+                    // Don't draw a frame around the line edit when inside a QComboBox!
+                    return;
+                }
                 const QString baseName = baseNameTextInput(frameOption);
                 if (const auto imagineImage = resolveImage(baseName, frameOption)) {
                     imagineImage->draw(painter, frameOption->rect);
