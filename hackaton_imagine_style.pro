@@ -9,11 +9,13 @@ CONFIG += c++11
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    ninepatch.cpp
+    ninepatch.cpp \
+    qimaginestyle.cpp
 
 HEADERS += \
     mainwindow.h \
-    ninepatch.h
+    ninepatch.h \
+    qimaginestyle.h
 
 FORMS += \
     mainwindow.ui

@@ -1,0 +1,1 @@
+#include "qimaginestyle.h"
