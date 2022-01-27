@@ -153,6 +153,14 @@ class QImagineStyle : public QProxyStyle
             }
             break;
         }
+        case CT_RadioButton: {
+            if (const QStyleOptionButton *buttonOption = qstyleoption_cast<const QStyleOptionButton *>(option)) {
+                const QString baseName = baseNameButton(QStringLiteral("radiobutton-indicator"), buttonOption);
+                if (const auto imagineImage = resolveImage(baseName, buttonOption))
+                    return imagineImage->size();
+            }
+            break;
+        }
         default:
             break;
         }
