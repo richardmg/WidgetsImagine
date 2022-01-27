@@ -106,6 +106,13 @@ class QImagineStyle : public QProxyStyle
         return fileName;
     }
 
+    QString baseNameTextInput(const QStyleOptionFrame *option) const
+    {
+        Q_UNUSED(option);
+        QString fileName = QStringLiteral(":/images/textfield-background");
+        return fileName;
+    }
+
 // -----------------------------------------------------------------------
 
     void drawPrimitive(
@@ -130,6 +137,15 @@ class QImagineStyle : public QProxyStyle
                     imagineImage->draw(painter, buttonOption->rect);
                     return;
                 }
+            }
+        case PE_PanelLineEdit:
+            if (const QStyleOptionFrame *frameOption = qstyleoption_cast<const QStyleOptionFrame *>(option)) {
+                const QString baseName = baseNameTextInput(frameOption);
+                if (const auto imagineImage = resolveImage(baseName, frameOption)) {
+                    imagineImage->draw(painter, frameOption->rect);
+                    return;
+                }
+                return;
             }
         default:
             break;
