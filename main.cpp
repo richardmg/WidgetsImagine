@@ -22,36 +22,35 @@ class QImagineStyle : public QProxyStyle
             if (fileName.contains(QLatin1String(".9."))) {
                 try {
                     // does this leak if exception is thrown?
-                    QStyleNinePatchImage *npImage = new QStyleNinePatchImage(QImage(fileName));
-                    m_ninePatchImages.insert(fileName, npImage);
+                    m_images.insert(fileName, new QStyleNinePatchImage(QImage(fileName)));
                 } catch (NinePatchException *exception) {
                     qDebug() << "load, exception:" << exception->what();
                 }
             } else {
-                m_pixmaps.insert(fileName, QPixmap(fileName));
-                qDebug() << "TODO: Load normal image:" << fileName;
+                m_images.insert(fileName, new QImagineStyleFixedImage(QPixmap(fileName)));
             }
         }
     }
 
     ~QImagineStyle() {
-        qDeleteAll(m_ninePatchImages);
+        qDeleteAll(m_images);
     }
 
     QSize imageSize(const QString &baseName, const QStyleOption *option) const
     {
+        Q_UNUSED(option);
         // try with different endings, .9., @2x. etc, and append .png
 
         static const QString nine = QStringLiteral(".9");
         static const QString png = QStringLiteral(".png");
 
         QString fileName = baseName + nine + png;
-        if (QStyleNinePatchImage *npImage = m_ninePatchImages[fileName])
-            return npImage->m_image.size();
+        if (const auto imagineImage = m_images[fileName])
+            return imagineImage->size();
 
         fileName = baseName + png;
-        if (m_pixmaps.contains(fileName))
-            return m_pixmaps[fileName].size();
+        if (const auto imagineImage = m_images[fileName])
+            return imagineImage->size();
 
         return QSize();
     }
@@ -64,14 +63,14 @@ class QImagineStyle : public QProxyStyle
         static const QString png = QStringLiteral(".png");
 
         QString fileName = baseName + nine + png;
-        if (QStyleNinePatchImage *npImage = m_ninePatchImages[fileName]) {
-            npImage->draw(*painter, option->rect);
+        if (const auto imagineImage = m_images[fileName]) {
+            imagineImage->draw(painter, option->rect);
             return true;
         }
 
         fileName = baseName + png;
-        if (m_pixmaps.contains(fileName)) {
-            painter->drawPixmap(option->rect.topLeft(), m_pixmaps[fileName]);
+        if (const auto imagineImage = m_images[fileName]) {
+            imagineImage->draw(painter, option->rect);
             return true;
         }
 
@@ -147,8 +146,7 @@ class QImagineStyle : public QProxyStyle
     }
 
 private:
-    QMap<QString, QStyleNinePatchImage*> m_ninePatchImages;
-    QMap<QString, QPixmap> m_pixmaps;
+    QMap<QString, QImagineStyleImage*> m_images;
 };
 
 int main(int argc, char *argv[])

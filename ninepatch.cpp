@@ -11,14 +11,21 @@ QStyleNinePatchImage::QStyleNinePatchImage(const QImage &image)
     }
 }
 
-QStyleNinePatchImage::~QStyleNinePatchImage() {
+QStyleNinePatchImage::~QStyleNinePatchImage()
+{
 }
 
-void QStyleNinePatchImage::draw(QPainter& painter, const QRect &targetRect) {
+void QStyleNinePatchImage::draw(QPainter *painter, const QRect &targetRect) const
+{
     const QPoint pos = targetRect.topLeft();
     const QSize size = targetRect.size();
-    SetImageSize(size.width(), size.height());
-    painter.drawImage(pos.x(), pos.y(), CachedImage);
+    const_cast<QStyleNinePatchImage *>(this)->SetImageSize(size.width(), size.height());
+    painter->drawImage(pos.x(), pos.y(), CachedImage);
+}
+
+QSize QStyleNinePatchImage::size() const
+{
+    return m_image.size();
 }
 
 void QStyleNinePatchImage::SetImageSize(int width, int height) {
@@ -289,3 +296,19 @@ void QStyleNinePatchImage::UpdateCachedImage(int width, int height) {
 }
 
 
+
+QImagineStyleFixedImage::QImagineStyleFixedImage(const QPixmap &pixmap)
+    : QImagineStyleImage()
+    , m_pixmap(pixmap)
+{
+}
+
+void QImagineStyleFixedImage::draw(QPainter *painter, const QRect &targetRect) const
+{
+    painter->drawPixmap(targetRect.topLeft(), m_pixmap);
+}
+
+QSize QImagineStyleFixedImage::size() const
+{
+    return m_pixmap.size();
+}
