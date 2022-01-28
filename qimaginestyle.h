@@ -344,6 +344,13 @@ class QImagineStyle : public QProxyStyle
             }
             break;
         }
+        case CT_Slider:
+            if (const auto *sliderOption = qstyleoption_cast<const QStyleOptionSlider *>(option)) {
+                const QString baseNameHandle = baseNameSliderHandle(sliderOption);
+                if (const auto imagineImage = resolveImage(baseNameHandle, sliderOption))
+                    return QSize(100, imagineImage->size().height());
+            }
+            break;
         default:
             break;
         }
