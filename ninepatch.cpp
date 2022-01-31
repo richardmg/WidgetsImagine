@@ -27,7 +27,9 @@ void QStyleNinePatchImage::draw(QPainter *painter, const QRect &targetRect) cons
 
 QSize QStyleNinePatchImage::size() const
 {
-    return m_image.size() / m_image.devicePixelRatio();
+    // Return the size the image should occupy in a UI
+    const QSize ninePMargins(2, 2);
+    return (m_image.size() - ninePMargins) / m_image.devicePixelRatio();
 }
 
 void QStyleNinePatchImage::setImageSize(int width, int height)
@@ -330,5 +332,10 @@ void QImagineStyleFixedImage::draw(QPainter *painter, const QRect &targetRect) c
 
 QSize QImagineStyleFixedImage::size() const
 {
-    return m_pixmap.size() / m_pixmap.devicePixelRatio();
+    // TODO: For some reason, is seems like we need to add an extra pixel to the image size
+    // in order for QCheckBox and QadioButton to be drawn correct. But if we do, then
+    // QComboBox indicator will not align correctly with the frame.
+    // From looking at the actual image that we load, we return the correct size from
+    // this function, so the error must be somewhere else.
+    return m_pixmap.size() / m_pixmap.devicePixelRatioF();
 }
